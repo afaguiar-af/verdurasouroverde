@@ -183,9 +183,9 @@ async def delete_cliente(cliente_id: str, user: dict = Depends(verify_token)):
         raise HTTPException(status_code=404, detail="Cliente não encontrado")
     return {"message": "Cliente excluído com sucesso"}
 
-# Routes - Produtos
+# Routes - Produtos (Protegidas)
 @api_router.post("/produtos", response_model=Produto)
-async def create_produto(produto: ProdutoCreate):
+async def create_produto(produto: ProdutoCreate, user: dict = Depends(verify_token)):
     last_produto = await db.produtos.find_one({}, {"_id": 0, "cp": 1}, sort=[("cp", -1)])
     next_cp = (last_produto["cp"] + 1) if last_produto and "cp" in last_produto else 1
     
@@ -196,7 +196,7 @@ async def create_produto(produto: ProdutoCreate):
     return Produto(**produto_dict)
 
 @api_router.get("/produtos", response_model=List[Produto])
-async def get_produtos(search: Optional[str] = None, tipo: Optional[str] = None):
+async def get_produtos(search: Optional[str] = None, tipo: Optional[str] = None, user: dict = Depends(verify_token)):
     query = {}
     if search:
         query["nome"] = {"$regex": search, "$options": "i"}
@@ -206,21 +206,21 @@ async def get_produtos(search: Optional[str] = None, tipo: Optional[str] = None)
     return produtos
 
 @api_router.get("/produtos/cp/{cp}", response_model=Produto)
-async def get_produto_by_cp(cp: int):
+async def get_produto_by_cp(cp: int, user: dict = Depends(verify_token)):
     produto = await db.produtos.find_one({"cp": cp}, {"_id": 0})
     if not produto:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
     return produto
 
 @api_router.get("/produtos/{produto_id}", response_model=Produto)
-async def get_produto(produto_id: str):
+async def get_produto(produto_id: str, user: dict = Depends(verify_token)):
     produto = await db.produtos.find_one({"id": produto_id}, {"_id": 0})
     if not produto:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
     return produto
 
 @api_router.put("/produtos/{produto_id}", response_model=Produto)
-async def update_produto(produto_id: str, produto: ProdutoCreate):
+async def update_produto(produto_id: str, produto: ProdutoCreate, user: dict = Depends(verify_token)):
     produto_dict = produto.model_dump()
     result = await db.produtos.update_one({"id": produto_id}, {"$set": produto_dict})
     if result.matched_count == 0:
@@ -229,7 +229,7 @@ async def update_produto(produto_id: str, produto: ProdutoCreate):
     return updated_produto
 
 @api_router.delete("/produtos/{produto_id}")
-async def delete_produto(produto_id: str):
+async def delete_produto(produto_id: str, user: dict = Depends(verify_token)):
     result = await db.produtos.delete_one({"id": produto_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
