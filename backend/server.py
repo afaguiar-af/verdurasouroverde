@@ -466,7 +466,8 @@ async def get_top_produtos(
 @api_router.get("/analytics/vendas-por-categoria")
 async def get_vendas_por_categoria(
     dataInicio: Optional[str] = None,
-    dataFim: Optional[str] = None
+    dataFim: Optional[str] = None,
+    user: dict = Depends(verify_token)
 ):
     query = {}
     if dataInicio and dataFim:
