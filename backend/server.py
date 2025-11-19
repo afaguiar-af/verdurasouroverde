@@ -291,6 +291,21 @@ async def get_pedido(pedido_id: str, user: dict = Depends(verify_token)):
         raise HTTPException(status_code=404, detail="Pedido não encontrado")
     return pedido
 
+@api_router.delete("/pedidos/{pedido_id}")
+async def delete_pedido(pedido_id: str, user: dict = Depends(verify_token)):
+    # Verificar se pedido existe
+    pedido = await db.pedidos.find_one({"id": pedido_id})
+    if not pedido:
+        raise HTTPException(status_code=404, detail="Pedido não encontrado")
+    
+    # Excluir pedido (MongoDB não tem ItemPedido separado, itens estão dentro do pedido)
+    result = await db.pedidos.delete_one({"id": pedido_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=500, detail="Erro ao excluir pedido")
+    
+    return {"message": "Pedido excluído com sucesso"}
+
 # Analytics Routes (Protegidas)
 @api_router.get("/analytics/resumo")
 async def get_resumo(
