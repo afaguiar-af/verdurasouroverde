@@ -57,8 +57,9 @@ body {
 }
 
 .sidebar-logo {
-  height: 48px;
-  width: auto;
+  width: 100%;
+  height: auto;
+  max-width: 220px;
 }
 
 .sidebar-title {
