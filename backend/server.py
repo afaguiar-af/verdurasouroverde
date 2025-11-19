@@ -285,7 +285,7 @@ async def get_pedidos(
     }
 
 @api_router.get("/pedidos/{pedido_id}", response_model=Pedido)
-async def get_pedido(pedido_id: str):
+async def get_pedido(pedido_id: str, user: dict = Depends(verify_token)):
     pedido = await db.pedidos.find_one({"id": pedido_id}, {"_id": 0})
     if not pedido:
         raise HTTPException(status_code=404, detail="Pedido não encontrado")
