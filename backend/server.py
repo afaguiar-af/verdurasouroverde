@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI, APIRouter, HTTPException, Query
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -6,9 +6,10 @@ import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
-from typing import List, Optional
-from datetime import datetime, timezone
+from typing import List, Optional, Dict, Any
+from datetime import datetime, timezone, timedelta
 from bson import ObjectId
+from collections import defaultdict
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -136,7 +137,6 @@ async def delete_cliente(cliente_id: str):
 # Routes - Produtos
 @api_router.post("/produtos", response_model=Produto)
 async def create_produto(produto: ProdutoCreate):
-    # Get the next CP number
     last_produto = await db.produtos.find_one({}, {"_id": 0, "cp": 1}, sort=[("cp", -1)])
     next_cp = (last_produto["cp"] + 1) if last_produto and "cp" in last_produto else 1
     
@@ -193,7 +193,6 @@ async def create_pedido(pedido: PedidoCreate):
     pedido_dict['data_pedido'] = datetime.now(timezone.utc).isoformat()
     pedido_dict['id'] = str(ObjectId())
     
-    # Get client info if cliente_id is provided
     if pedido_dict.get('cliente_id'):
         cliente = await db.clientes.find_one({"id": pedido_dict['cliente_id']}, {"_id": 0})
         if cliente:
@@ -204,10 +203,36 @@ async def create_pedido(pedido: PedidoCreate):
     await db.pedidos.insert_one(pedido_dict)
     return Pedido(**pedido_dict)
 
-@api_router.get("/pedidos", response_model=List[Pedido])
-async def get_pedidos():
-    pedidos = await db.pedidos.find({}, {"_id": 0}).sort("data_pedido", -1).to_list(1000)
-    return pedidos
+@api_router.get("/pedidos")
+async def get_pedidos(
+    dataInicio: Optional[str] = None,
+    dataFim: Optional[str] = None,
+    clienteId: Optional[str] = None,
+    page: int = 1,
+    pageSize: int = 20
+):
+    query = {}
+    
+    if dataInicio and dataFim:
+        query["data_pedido"] = {
+            "$gte": dataInicio,
+            "$lte": dataFim
+        }
+    
+    if clienteId:
+        query["cliente_id"] = clienteId
+    
+    total_count = await db.pedidos.count_documents(query)
+    skip = (page - 1) * pageSize
+    
+    pedidos = await db.pedidos.find(query, {"_id": 0}).sort("data_pedido", -1).skip(skip).limit(pageSize).to_list(pageSize)
+    
+    return {
+        "pedidos": pedidos,
+        "totalCount": total_count,
+        "page": page,
+        "pageSize": pageSize
+    }
 
 @api_router.get("/pedidos/{pedido_id}", response_model=Pedido)
 async def get_pedido(pedido_id: str):
@@ -215,6 +240,256 @@ async def get_pedido(pedido_id: str):
     if not pedido:
         raise HTTPException(status_code=404, detail="Pedido não encontrado")
     return pedido
+
+# Analytics Routes
+@api_router.get("/analytics/resumo")
+async def get_resumo(
+    dataInicio: Optional[str] = None,
+    dataFim: Optional[str] = None
+):
+    query = {}
+    if dataInicio and dataFim:
+        query["data_pedido"] = {"$gte": dataInicio, "$lte": dataFim}
+    
+    pedidos = await db.pedidos.find(query, {"_id": 0}).to_list(10000)
+    
+    if not pedidos:
+        return {
+            "faturamento_total": 0,
+            "total_pedidos": 0,
+            "ticket_medio": 0,
+            "produto_mais_vendido": None,
+            "cliente_maior_faturamento": None
+        }
+    
+    faturamento_total = sum(p["valor_total"] for p in pedidos)
+    total_pedidos = len(pedidos)
+    ticket_medio = faturamento_total / total_pedidos if total_pedidos > 0 else 0
+    
+    # Produto mais vendido
+    produtos_qtd = defaultdict(lambda: {"quantidade": 0, "nome": ""})
+    for pedido in pedidos:
+        for item in pedido.get("itens", []):
+            produtos_qtd[item["produto_id"]]["quantidade"] += item["quantidade"]
+            produtos_qtd[item["produto_id"]]["nome"] = item["produto_nome"]
+    
+    produto_mais_vendido = None
+    if produtos_qtd:
+        top_produto = max(produtos_qtd.items(), key=lambda x: x[1]["quantidade"])
+        produto_mais_vendido = {
+            "nome": top_produto[1]["nome"],
+            "quantidade": top_produto[1]["quantidade"]
+        }
+    
+    # Cliente com maior faturamento
+    clientes_valor = defaultdict(lambda: {"valor": 0, "nome": ""})
+    for pedido in pedidos:
+        if pedido.get("cliente_id"):
+            clientes_valor[pedido["cliente_id"]]["valor"] += pedido["valor_total"]
+            clientes_valor[pedido["cliente_id"]]["nome"] = pedido.get("cliente_nome", "")
+    
+    cliente_maior_faturamento = None
+    if clientes_valor:
+        top_cliente = max(clientes_valor.items(), key=lambda x: x[1]["valor"])
+        cliente_maior_faturamento = {
+            "nome": top_cliente[1]["nome"],
+            "valor": top_cliente[1]["valor"]
+        }
+    
+    return {
+        "faturamento_total": faturamento_total,
+        "total_pedidos": total_pedidos,
+        "ticket_medio": ticket_medio,
+        "produto_mais_vendido": produto_mais_vendido,
+        "cliente_maior_faturamento": cliente_maior_faturamento
+    }
+
+@api_router.get("/analytics/vendas-por-dia")
+async def get_vendas_por_dia(
+    dataInicio: Optional[str] = None,
+    dataFim: Optional[str] = None,
+    clienteId: Optional[str] = None
+):
+    query = {}
+    if dataInicio and dataFim:
+        query["data_pedido"] = {"$gte": dataInicio, "$lte": dataFim}
+    if clienteId:
+        query["cliente_id"] = clienteId
+    
+    pedidos = await db.pedidos.find(query, {"_id": 0}).to_list(10000)
+    
+    vendas_por_dia = defaultdict(lambda: {"valor": 0, "quantidade_itens": 0})
+    for pedido in pedidos:
+        data = pedido["data_pedido"][:10]  # YYYY-MM-DD
+        vendas_por_dia[data]["valor"] += pedido["valor_total"]
+        vendas_por_dia[data]["quantidade_itens"] += pedido["total_itens"]
+    
+    result = [{"data": k, "valor": v["valor"], "quantidade_itens": v["quantidade_itens"]} 
+              for k, v in sorted(vendas_por_dia.items())]
+    
+    return result
+
+@api_router.get("/analytics/vendas-por-mes")
+async def get_vendas_por_mes(
+    ano: Optional[int] = None,
+    clienteId: Optional[str] = None
+):
+    query = {}
+    if ano:
+        query["data_pedido"] = {
+            "$gte": f"{ano}-01-01",
+            "$lte": f"{ano}-12-31"
+        }
+    if clienteId:
+        query["cliente_id"] = clienteId
+    
+    pedidos = await db.pedidos.find(query, {"_id": 0}).to_list(10000)
+    
+    vendas_por_mes = defaultdict(lambda: {"valor": 0, "pedidos": 0})
+    for pedido in pedidos:
+        mes = pedido["data_pedido"][:7]  # YYYY-MM
+        vendas_por_mes[mes]["valor"] += pedido["valor_total"]
+        vendas_por_mes[mes]["pedidos"] += 1
+    
+    result = [{"mes": k, "valor": v["valor"], "pedidos": v["pedidos"]} 
+              for k, v in sorted(vendas_por_mes.items())]
+    
+    return result
+
+@api_router.get("/analytics/vendas-por-produto")
+async def get_vendas_por_produto(
+    dataInicio: Optional[str] = None,
+    dataFim: Optional[str] = None,
+    clienteId: Optional[str] = None
+):
+    query = {}
+    if dataInicio and dataFim:
+        query["data_pedido"] = {"$gte": dataInicio, "$lte": dataFim}
+    if clienteId:
+        query["cliente_id"] = clienteId
+    
+    pedidos = await db.pedidos.find(query, {"_id": 0}).to_list(10000)
+    
+    vendas_por_produto = defaultdict(float)
+    produto_nomes = {}
+    
+    for pedido in pedidos:
+        for item in pedido.get("itens", []):
+            vendas_por_produto[item["produto_id"]] += item["valor_total"]
+            produto_nomes[item["produto_id"]] = item["produto_nome"]
+    
+    result = [{"produto": produto_nomes[k], "valor": v} 
+              for k, v in sorted(vendas_por_produto.items(), key=lambda x: x[1], reverse=True)]
+    
+    return result
+
+@api_router.get("/analytics/top-produtos")
+async def get_top_produtos(
+    dataInicio: Optional[str] = None,
+    dataFim: Optional[str] = None,
+    limit: int = 10
+):
+    query = {}
+    if dataInicio and dataFim:
+        query["data_pedido"] = {"$gte": dataInicio, "$lte": dataFim}
+    
+    pedidos = await db.pedidos.find(query, {"_id": 0}).to_list(10000)
+    
+    produtos_stats = defaultdict(lambda: {"quantidade": 0, "valor": 0, "nome": ""})
+    
+    for pedido in pedidos:
+        for item in pedido.get("itens", []):
+            produtos_stats[item["produto_id"]]["quantidade"] += item["quantidade"]
+            produtos_stats[item["produto_id"]]["valor"] += item["valor_total"]
+            produtos_stats[item["produto_id"]]["nome"] = item["produto_nome"]
+    
+    result = [{"produto": v["nome"], "quantidade": v["quantidade"], "valor": v["valor"]} 
+              for k, v in sorted(produtos_stats.items(), key=lambda x: x[1]["quantidade"], reverse=True)[:limit]]
+    
+    return result
+
+@api_router.get("/analytics/vendas-por-categoria")
+async def get_vendas_por_categoria(
+    dataInicio: Optional[str] = None,
+    dataFim: Optional[str] = None
+):
+    query = {}
+    if dataInicio and dataFim:
+        query["data_pedido"] = {"$gte": dataInicio, "$lte": dataFim}
+    
+    pedidos = await db.pedidos.find(query, {"_id": 0}).to_list(10000)
+    produtos = await db.produtos.find({}, {"_id": 0}).to_list(10000)
+    
+    produto_tipo_map = {p["id"]: p["tipo"] for p in produtos}
+    
+    categoria_stats = defaultdict(lambda: {"valor": 0, "quantidade": 0})
+    
+    for pedido in pedidos:
+        for item in pedido.get("itens", []):
+            tipo = produto_tipo_map.get(item["produto_id"], "Outros")
+            categoria_stats[tipo]["valor"] += item["valor_total"]
+            categoria_stats[tipo]["quantidade"] += item["quantidade"]
+    
+    result = [{"categoria": k, "valor": v["valor"], "quantidade": v["quantidade"]} 
+              for k, v in sorted(categoria_stats.items(), key=lambda x: x[1]["valor"], reverse=True)]
+    
+    return result
+
+@api_router.get("/analytics/produtos-por-mes")
+async def get_produtos_por_mes(
+    dataInicio: Optional[str] = None,
+    dataFim: Optional[str] = None,
+    limitProdutos: int = 5
+):
+    query = {}
+    if dataInicio and dataFim:
+        query["data_pedido"] = {"$gte": dataInicio, "$lte": dataFim}
+    
+    pedidos = await db.pedidos.find(query, {"_id": 0}).to_list(10000)
+    
+    # Get top products overall
+    produtos_total = defaultdict(lambda: {"valor": 0, "nome": ""})
+    for pedido in pedidos:
+        for item in pedido.get("itens", []):
+            produtos_total[item["produto_id"]]["valor"] += item["valor_total"]
+            produtos_total[item["produto_id"]]["nome"] = item["produto_nome"]
+    
+    top_produtos = sorted(produtos_total.items(), key=lambda x: x[1]["valor"], reverse=True)[:limitProdutos]
+    top_produto_ids = [p[0] for p in top_produtos]
+    produto_nomes = {p[0]: p[1]["nome"] for p in top_produtos}
+    
+    # Group by month
+    vendas_mes_produto = defaultdict(lambda: defaultdict(float))
+    for pedido in pedidos:
+        mes = pedido["data_pedido"][:7]  # YYYY-MM
+        for item in pedido.get("itens", []):
+            if item["produto_id"] in top_produto_ids:
+                vendas_mes_produto[mes][item["produto_id"]] += item["valor_total"]
+    
+    result = []
+    for mes in sorted(vendas_mes_produto.keys()):
+        mes_data = {"mes": mes}
+        for prod_id in top_produto_ids:
+            mes_data[produto_nomes[prod_id]] = vendas_mes_produto[mes].get(prod_id, 0)
+        result.append(mes_data)
+    
+    return result
+
+@api_router.get("/analytics/vendas-cliente-timeline")
+async def get_vendas_cliente_timeline(
+    clienteId: str,
+    dataInicio: Optional[str] = None,
+    dataFim: Optional[str] = None
+):
+    query = {"cliente_id": clienteId}
+    if dataInicio and dataFim:
+        query["data_pedido"] = {"$gte": dataInicio, "$lte": dataFim}
+    
+    pedidos = await db.pedidos.find(query, {"_id": 0}).sort("data_pedido", 1).to_list(10000)
+    
+    result = [{"data": p["data_pedido"][:10], "valor": p["valor_total"]} for p in pedidos]
+    
+    return result
 
 app.include_router(api_router)
 
