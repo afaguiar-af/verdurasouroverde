@@ -536,7 +536,8 @@ async def get_produtos_por_mes(
 async def get_vendas_cliente_timeline(
     clienteId: str,
     dataInicio: Optional[str] = None,
-    dataFim: Optional[str] = None
+    dataFim: Optional[str] = None,
+    user: dict = Depends(verify_token)
 ):
     query = {"cliente_id": clienteId}
     if dataInicio and dataFim:
