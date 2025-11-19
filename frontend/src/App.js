@@ -1250,7 +1250,22 @@ const ListaVendas = () => {
       </div>
 
       <div className="card mt-4">
-        <h2 className="section-title">Resultados ({totalCount} pedidos)</h2>
+        <div className="card-header-actions">
+          <h2 className="section-title">Resultados ({totalCount} pedidos)</h2>
+          <div className="header-actions">
+            <input
+              type="file"
+              id="csv-import"
+              accept=".csv"
+              style={{ display: 'none' }}
+              onChange={handleImportCSV}
+              data-testid="csv-import-input"
+            />
+            <label htmlFor="csv-import" className="btn btn-success" data-testid="import-csv-btn">
+              {importando ? 'Importando...' : '📥 Importar CSV'}
+            </label>
+          </div>
+        </div>
         <div className="table-container">
           <table data-testid="pedidos-table">
             <thead>
