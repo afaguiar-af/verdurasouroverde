@@ -235,9 +235,9 @@ async def delete_produto(produto_id: str, user: dict = Depends(verify_token)):
         raise HTTPException(status_code=404, detail="Produto não encontrado")
     return {"message": "Produto excluído com sucesso"}
 
-# Routes - Pedidos
+# Routes - Pedidos (Protegidas)
 @api_router.post("/pedidos", response_model=Pedido)
-async def create_pedido(pedido: PedidoCreate):
+async def create_pedido(pedido: PedidoCreate, user: dict = Depends(verify_token)):
     pedido_dict = pedido.model_dump()
     pedido_dict['data_pedido'] = datetime.now(timezone.utc).isoformat()
     pedido_dict['id'] = str(ObjectId())
