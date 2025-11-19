@@ -147,7 +147,7 @@ async def create_cliente(cliente: ClienteCreate, user: dict = Depends(verify_tok
     return Cliente(**cliente_dict)
 
 @api_router.get("/clientes", response_model=List[Cliente])
-async def get_clientes(search: Optional[str] = None):
+async def get_clientes(search: Optional[str] = None, user: dict = Depends(verify_token)):
     query = {}
     if search:
         query = {
