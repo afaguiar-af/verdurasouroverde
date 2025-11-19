@@ -1348,6 +1348,7 @@ function App() {
           <Route path="/clientes" element={<Layout><Clientes /></Layout>} />
           <Route path="/produtos" element={<Layout><Produtos /></Layout>} />
           <Route path="/venda" element={<Layout><Venda /></Layout>} />
+          <Route path="/historico" element={<Layout><Historico /></Layout>} />
           <Route path="/impressao/:pedidoId" element={<Impressao />} />
         </Routes>
       </BrowserRouter>
