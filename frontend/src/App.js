@@ -945,6 +945,378 @@ const Impressao = () => {
   );
 };
 
+// Histórico Page
+const Historico = () => {
+  const [activeTab, setActiveTab] = useState("lista");
+  
+  return (
+    <div className="page-content">
+      <h1 className="page-title" data-testid="historico-title">Histórico de Vendas</h1>
+      
+      <div className="tabs-container">
+        <div className="tabs">
+          <button 
+            className={`tab ${activeTab === "lista" ? "active" : ""}`}
+            onClick={() => setActiveTab("lista")}
+            data-testid="tab-lista"
+          >
+            Lista de Vendas
+          </button>
+          <button 
+            className={`tab ${activeTab === "dashboard" ? "active" : ""}`}
+            onClick={() => setActiveTab("dashboard")}
+            data-testid="tab-dashboard"
+          >
+            Dashboard
+          </button>
+        </div>
+      </div>
+      
+      {activeTab === "lista" ? <ListaVendas /> : <Dashboard />}
+    </div>
+  );
+};
+
+// Lista de Vendas Component
+const ListaVendas = () => {
+  const navigate = useNavigate();
+  const [pedidos, setPedidos] = useState([]);
+  const [filtros, setFiltros] = useState({
+    periodo: "hoje",
+    dataInicio: "",
+    dataFim: "",
+    clienteId: ""
+  });
+  const [clientes, setClientes] = useState([]);
+  const [searchCliente, setSearchCliente] = useState("");
+  const [clienteSelecionado, setClienteSelecionado] = useState(null);
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [pageSize, setPageSize] = useState(20);
+  const [selectedPedido, setSelectedPedido] = useState(null);
+
+  useEffect(() => {
+    loadClientes();
+  }, []);
+
+  useEffect(() => {
+    aplicarFiltros();
+  }, [page, pageSize]);
+
+  const loadClientes = async () => {
+    try {
+      const response = await axios.get(`${API}/clientes`);
+      setClientes(response.data);
+    } catch (error) {
+      toast.error("Erro ao carregar clientes");
+    }
+  };
+
+  const calcularDatas = (periodo) => {
+    const hoje = new Date();
+    let dataInicio, dataFim;
+
+    switch(periodo) {
+      case "hoje":
+        dataInicio = dataFim = hoje.toISOString().split('T')[0];
+        break;
+      case "ontem":
+        const ontem = new Date(hoje);
+        ontem.setDate(ontem.getDate() - 1);
+        dataInicio = dataFim = ontem.toISOString().split('T')[0];
+        break;
+      case "ultimos7":
+        const sete = new Date(hoje);
+        sete.setDate(sete.getDate() - 7);
+        dataInicio = sete.toISOString().split('T')[0];
+        dataFim = hoje.toISOString().split('T')[0];
+        break;
+      case "estemes":
+        dataInicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().split('T')[0];
+        dataFim = hoje.toISOString().split('T')[0];
+        break;
+      case "mesanterior":
+        const mesAnt = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
+        const fimMesAnt = new Date(hoje.getFullYear(), hoje.getMonth(), 0);
+        dataInicio = mesAnt.toISOString().split('T')[0];
+        dataFim = fimMesAnt.toISOString().split('T')[0];
+        break;
+      default:
+        return { dataInicio: filtros.dataInicio, dataFim: filtros.dataFim };
+    }
+
+    return { dataInicio, dataFim };
+  };
+
+  const aplicarFiltros = async () => {
+    try {
+      let { dataInicio, dataFim } = filtros.periodo === "personalizado" 
+        ? { dataInicio: filtros.dataInicio, dataFim: filtros.dataFim }
+        : calcularDatas(filtros.periodo);
+
+      const params = new URLSearchParams({
+        page: page.toString(),
+        pageSize: pageSize.toString()
+      });
+
+      if (dataInicio) params.append('dataInicio', dataInicio + 'T00:00:00.000Z');
+      if (dataFim) params.append('dataFim', dataFim + 'T23:59:59.999Z');
+      if (clienteSelecionado) params.append('clienteId', clienteSelecionado.id);
+
+      const response = await axios.get(`${API}/pedidos?${params}`);
+      setPedidos(response.data.pedidos);
+      setTotalCount(response.data.totalCount);
+    } catch (error) {
+      toast.error("Erro ao carregar pedidos");
+    }
+  };
+
+  const limparFiltros = () => {
+    setFiltros({
+      periodo: "hoje",
+      dataInicio: "",
+      dataFim: "",
+      clienteId: ""
+    });
+    setClienteSelecionado(null);
+    setPage(1);
+  };
+
+  const filteredClientes = clientes.filter(c => 
+    c.nome.toLowerCase().includes(searchCliente.toLowerCase()) ||
+    c.telefone.includes(searchCliente)
+  );
+
+  const formatarData = (isoString) => {
+    const date = new Date(isoString);
+    return date.toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const totalPages = Math.ceil(totalCount / pageSize);
+
+  return (
+    <div>
+      <div className="card">
+        <h2 className="section-title">Filtros</h2>
+        <div className="filter-grid">
+          <div className="form-group">
+            <label>Período</label>
+            <select
+              data-testid="periodo-select"
+              value={filtros.periodo}
+              onChange={(e) => setFiltros({...filtros, periodo: e.target.value})}
+            >
+              <option value="hoje">Hoje</option>
+              <option value="ontem">Ontem</option>
+              <option value="ultimos7">Últimos 7 dias</option>
+              <option value="estemes">Este mês</option>
+              <option value="mesanterior">Mês anterior</option>
+              <option value="personalizado">Personalizado</option>
+            </select>
+          </div>
+
+          {filtros.periodo === "personalizado" && (
+            <>
+              <div className="form-group">
+                <label>Data Início</label>
+                <input
+                  data-testid="data-inicio-input"
+                  type="date"
+                  value={filtros.dataInicio}
+                  onChange={(e) => setFiltros({...filtros, dataInicio: e.target.value})}
+                />
+              </div>
+              <div className="form-group">
+                <label>Data Fim</label>
+                <input
+                  data-testid="data-fim-input"
+                  type="date"
+                  value={filtros.dataFim}
+                  onChange={(e) => setFiltros({...filtros, dataFim: e.target.value})}
+                />
+              </div>
+            </>
+          )}
+
+          <div className="form-group">
+            <label>Cliente</label>
+            <input
+              data-testid="search-cliente-historico-input"
+              type="text"
+              placeholder="Buscar cliente..."
+              value={searchCliente}
+              onChange={(e) => setSearchCliente(e.target.value)}
+            />
+            {searchCliente && filteredClientes.length > 0 && (
+              <div className="cliente-dropdown">
+                {filteredClientes.slice(0, 5).map(cliente => (
+                  <div
+                    key={cliente.id}
+                    className="cliente-dropdown-item"
+                    onClick={() => {
+                      setClienteSelecionado(cliente);
+                      setSearchCliente(cliente.nome);
+                    }}
+                  >
+                    {cliente.nome} - {cliente.telefone}
+                  </div>
+                ))}
+              </div>
+            )}
+            {clienteSelecionado && (
+              <div className="selected-cliente">
+                {clienteSelecionado.nome}
+                <button onClick={() => { setClienteSelecionado(null); setSearchCliente(""); }}>✕</button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="button-group mt-3">
+          <button className="btn btn-primary" onClick={aplicarFiltros} data-testid="aplicar-filtros-btn">
+            Aplicar Filtros
+          </button>
+          <button className="btn btn-secondary" onClick={limparFiltros} data-testid="limpar-filtros-btn">
+            Limpar
+          </button>
+        </div>
+      </div>
+
+      <div className="card mt-4">
+        <h2 className="section-title">Resultados ({totalCount} pedidos)</h2>
+        <div className="table-container">
+          <table data-testid="pedidos-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Data</th>
+                <th>Cliente</th>
+                <th>Total Itens</th>
+                <th>Valor Total</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pedidos.map((pedido) => (
+                <tr key={pedido.id}>
+                  <td>{pedido.id.substring(0, 8)}</td>
+                  <td>{formatarData(pedido.data_pedido)}</td>
+                  <td>{pedido.cliente_nome || "Cliente não identificado"}</td>
+                  <td>{pedido.total_itens}</td>
+                  <td>R$ {pedido.valor_total.toFixed(2)}</td>
+                  <td>
+                    <button
+                      className="btn-icon btn-edit"
+                      onClick={() => setSelectedPedido(pedido)}
+                      data-testid={`ver-detalhes-${pedido.id}`}
+                    >
+                      Ver Detalhes
+                    </button>
+                    <button
+                      className="btn-icon btn-edit"
+                      onClick={() => navigate(`/impressao/${pedido.id}`)}
+                    >
+                      Reimprimir
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="pagination">
+          <button 
+            className="btn btn-secondary"
+            disabled={page === 1}
+            onClick={() => setPage(page - 1)}
+            data-testid="prev-page-btn"
+          >
+            Anterior
+          </button>
+          <span>Página {page} de {totalPages}</span>
+          <button 
+            className="btn btn-secondary"
+            disabled={page >= totalPages}
+            onClick={() => setPage(page + 1)}
+            data-testid="next-page-btn"
+          >
+            Próxima
+          </button>
+          <select
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value));
+              setPage(1);
+            }}
+          >
+            <option value="10">10 por página</option>
+            <option value="20">20 por página</option>
+            <option value="50">50 por página</option>
+          </select>
+        </div>
+      </div>
+
+      {selectedPedido && (
+        <div className="modal-overlay" onClick={() => setSelectedPedido(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Detalhes do Pedido</h2>
+              <button className="close-btn" onClick={() => setSelectedPedido(null)}>×</button>
+            </div>
+            <div className="pedido-detalhes">
+              <p><strong>ID:</strong> {selectedPedido.id.substring(0, 8)}</p>
+              <p><strong>Data:</strong> {formatarData(selectedPedido.data_pedido)}</p>
+              <p><strong>Cliente:</strong> {selectedPedido.cliente_nome || "Cliente não identificado"}</p>
+              {selectedPedido.observacao && (
+                <p><strong>Observação:</strong> {selectedPedido.observacao}</p>
+              )}
+              
+              <h3 className="mt-3">Itens do Pedido</h3>
+              <table className="mt-2">
+                <thead>
+                  <tr>
+                    <th>Produto</th>
+                    <th>Quantidade</th>
+                    <th>Valor Unit.</th>
+                    <th>Valor Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedPedido.itens.map((item, index) => (
+                    <tr key={index}>
+                      <td>{item.produto_nome}</td>
+                      <td>{item.quantidade}</td>
+                      <td>R$ {item.valor_unitario.toFixed(2)}</td>
+                      <td>R$ {item.valor_total.toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              
+              <div className="pedido-total mt-3">
+                <p><strong>Total de Itens:</strong> {selectedPedido.total_itens}</p>
+                <p><strong>Valor Total:</strong> R$ {selectedPedido.valor_total.toFixed(2)}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Dashboard Component (continua na próxima parte)
+const Dashboard = () => {
+  return <DashboardCharts />;
+};
+
 // Layout with Navigation
 const Layout = ({ children }) => {
   return (
@@ -957,6 +1329,7 @@ const Layout = ({ children }) => {
           <Link to="/clientes" data-testid="nav-clientes">Clientes</Link>
           <Link to="/produtos" data-testid="nav-produtos">Produtos</Link>
           <Link to="/venda" data-testid="nav-venda">Venda</Link>
+          <Link to="/historico" data-testid="nav-historico">Histórico</Link>
         </div>
       </nav>
       <main className="main-content">{children}</main>
