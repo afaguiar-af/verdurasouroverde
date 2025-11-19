@@ -441,7 +441,8 @@ async def get_vendas_por_produto(
 async def get_top_produtos(
     dataInicio: Optional[str] = None,
     dataFim: Optional[str] = None,
-    limit: int = 10
+    limit: int = 10,
+    user: dict = Depends(verify_token)
 ):
     query = {}
     if dataInicio and dataFim:
