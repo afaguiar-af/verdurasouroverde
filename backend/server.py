@@ -384,7 +384,8 @@ async def get_vendas_por_dia(
 @api_router.get("/analytics/vendas-por-mes")
 async def get_vendas_por_mes(
     ano: Optional[int] = None,
-    clienteId: Optional[str] = None
+    clienteId: Optional[str] = None,
+    user: dict = Depends(verify_token)
 ):
     query = {}
     if ano:
