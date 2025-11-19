@@ -413,7 +413,8 @@ async def get_vendas_por_mes(
 async def get_vendas_por_produto(
     dataInicio: Optional[str] = None,
     dataFim: Optional[str] = None,
-    clienteId: Optional[str] = None
+    clienteId: Optional[str] = None,
+    user: dict = Depends(verify_token)
 ):
     query = {}
     if dataInicio and dataFim:
