@@ -632,18 +632,58 @@ const Venda = () => {
     }
   };
 
+  const [produtosEncontrados, setProdutosEncontrados] = useState([]);
+  const [mostrarPreview, setMostrarPreview] = useState(false);
+
   const handleCpChange = async (cp) => {
     setCpInput(cp);
-    if (cp && !isNaN(cp)) {
+    
+    if (!cp || cp.trim() === '') {
+      setProdutoSelecionado(null);
+      setProdutosEncontrados([]);
+      setMostrarPreview(false);
+      return;
+    }
+
+    // Buscar por CP (numérico) ou por nome (texto)
+    if (!isNaN(cp)) {
+      // Busca por CP
       try {
         const response = await axios.get(`${API}/produtos/cp/${parseInt(cp)}`);
         setProdutoSelecionado(response.data);
+        setProdutosEncontrados([]);
+        setMostrarPreview(false);
       } catch (error) {
         setProdutoSelecionado(null);
+        setProdutosEncontrados([]);
+        setMostrarPreview(false);
       }
     } else {
-      setProdutoSelecionado(null);
+      // Busca por nome
+      try {
+        const response = await axios.get(`${API}/produtos?search=${cp}`);
+        if (response.data.length > 0) {
+          setProdutosEncontrados(response.data);
+          setMostrarPreview(true);
+          setProdutoSelecionado(null);
+        } else {
+          setProdutosEncontrados([]);
+          setMostrarPreview(false);
+          setProdutoSelecionado(null);
+        }
+      } catch (error) {
+        setProdutosEncontrados([]);
+        setMostrarPreview(false);
+        setProdutoSelecionado(null);
+      }
     }
+  };
+
+  const selecionarProdutoPreview = (produto) => {
+    setProdutoSelecionado(produto);
+    setCpInput(produto.cp.toString());
+    setMostrarPreview(false);
+    setProdutosEncontrados([]);
   };
 
   const handleAddItem = () => {
