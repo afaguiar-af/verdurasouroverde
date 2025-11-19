@@ -1105,6 +1105,60 @@ const ListaVendas = () => {
     });
   };
 
+  const handleDeletePedido = async () => {
+    if (!pedidoParaExcluir) return;
+
+    try {
+      await axios.delete(`${API}/pedidos/${pedidoParaExcluir.id}`);
+      toast.success('Venda excluída com sucesso!');
+      setPedidoParaExcluir(null);
+      // Remover da lista local
+      setPedidos(pedidos.filter(p => p.id !== pedidoParaExcluir.id));
+      setTotalCount(totalCount - 1);
+    } catch (error) {
+      toast.error('Erro ao excluir venda');
+    }
+  };
+
+  const handleImportCSV = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setImportando(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await axios.post(`${API}/pedidos/import-csv`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      const { importados, falhas, erros_detalhados } = response.data;
+      
+      let message = `Importação concluída: ${importados} vendas importadas`;
+      if (falhas > 0) {
+        message += `, ${falhas} linhas com erro`;
+      }
+      
+      toast.success(message);
+      
+      if (erros_detalhados && erros_detalhados.length > 0) {
+        console.log('Erros detalhados:', erros_detalhados);
+      }
+
+      // Recarregar lista
+      aplicarFiltros();
+      
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Erro ao importar arquivo CSV');
+    } finally {
+      setImportando(false);
+      event.target.value = ''; // Limpar input
+    }
+  };
+
   const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
