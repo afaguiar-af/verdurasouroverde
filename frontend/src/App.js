@@ -1447,16 +1447,18 @@ function App() {
     <div className="App">
       <BrowserRouter>
         <AuthProvider>
-          <Toaster position="top-right" richColors />
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/" element={<Navigate to="/venda" replace />} />
-            <Route path="/clientes" element={<PrivateRoute><Layout><Clientes /></Layout></PrivateRoute>} />
-            <Route path="/produtos" element={<PrivateRoute><Layout><Produtos /></Layout></PrivateRoute>} />
-            <Route path="/venda" element={<PrivateRoute><Layout><Venda /></Layout></PrivateRoute>} />
-            <Route path="/historico" element={<PrivateRoute><Layout><Historico /></Layout></PrivateRoute>} />
-            <Route path="/impressao/:pedidoId" element={<PrivateRoute><Impressao /></PrivateRoute>} />
-          </Routes>
+          <SidebarProvider>
+            <Toaster position="top-right" richColors />
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<Navigate to="/venda" replace />} />
+              <Route path="/clientes" element={<PrivateRoute><Layout><Clientes /></Layout></PrivateRoute>} />
+              <Route path="/produtos" element={<PrivateRoute><Layout><Produtos /></Layout></PrivateRoute>} />
+              <Route path="/venda" element={<PrivateRoute><Layout><Venda /></Layout></PrivateRoute>} />
+              <Route path="/historico" element={<PrivateRoute><Layout><Historico /></Layout></PrivateRoute>} />
+              <Route path="/impressao/:pedidoId" element={<PrivateRoute><Impressao /></PrivateRoute>} />
+            </Routes>
+          </SidebarProvider>
         </AuthProvider>
       </BrowserRouter>
     </div>
