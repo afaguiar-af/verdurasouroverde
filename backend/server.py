@@ -23,8 +23,25 @@ db = client[os.environ['DB_NAME']]
 
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
+security = HTTPBearer()
+
+# JWT Configuration
+SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'verduras-ouro-verde-secret-key-2025')
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_HOURS = 8
+
+# Credenciais fixas (hardcoded conforme especificação)
+FIXED_USERNAME = "beiculo"
+FIXED_PASSWORD = "adm@123"
 
 # Models
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+class LoginResponse(BaseModel):
+    token: str
+    username: str
 class Cliente(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: Optional[str] = None
