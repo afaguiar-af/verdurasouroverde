@@ -291,11 +291,12 @@ async def get_pedido(pedido_id: str, user: dict = Depends(verify_token)):
         raise HTTPException(status_code=404, detail="Pedido não encontrado")
     return pedido
 
-# Analytics Routes
+# Analytics Routes (Protegidas)
 @api_router.get("/analytics/resumo")
 async def get_resumo(
     dataInicio: Optional[str] = None,
-    dataFim: Optional[str] = None
+    dataFim: Optional[str] = None,
+    user: dict = Depends(verify_token)
 ):
     query = {}
     if dataInicio and dataFim:
