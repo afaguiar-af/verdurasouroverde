@@ -1336,6 +1336,7 @@ const Layout = ({ children }) => {
     <div className="layout">
       <nav className="navbar" data-testid="navbar">
         <div className="navbar-brand">
+          <img src="/logo.svg" alt="Logo Verduras Ouro Verde" className="navbar-logo" />
           <h1>VERDURAS OURO VERDE</h1>
         </div>
         <div className="navbar-links">
