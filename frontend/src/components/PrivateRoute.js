@@ -6,13 +6,13 @@ const PrivateRoute = ({ children }) => {
 
   if (loading) {
     return (
-      <div className=\"loading-screen\">
-        <div className=\"loading\">Carregando...</div>
+      <div className="loading-screen">
+        <div className="loading">Carregando...</div>
       </div>
     );
   }
 
-  return isAuthenticated ? children : <Navigate to=\"/login\" replace />;
+  return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
 
 export default PrivateRoute;
