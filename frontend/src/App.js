@@ -1374,6 +1374,13 @@ const ListaVendas = () => {
               onChange={handleImportCSV}
               data-testid="csv-import-input"
             />
+            <button 
+              onClick={() => downloadCSVTemplate('vendas')}
+              className="btn btn-secondary"
+              data-testid="download-template-vendas-btn"
+            >
+              📄 Baixar Modelo CSV
+            </button>
             <label htmlFor="csv-import" className="btn btn-success" data-testid="import-csv-btn">
               {importando ? 'Importando...' : '📥 Importar CSV'}
             </label>
