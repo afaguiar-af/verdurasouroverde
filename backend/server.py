@@ -185,6 +185,65 @@ async def delete_cliente(cliente_id: str, user: dict = Depends(verify_token)):
         raise HTTPException(status_code=404, detail="Cliente não encontrado")
     return {"message": "Cliente excluído com sucesso"}
 
+@api_router.post("/clientes/import-csv")
+async def import_clientes_csv(file: UploadFile = File(...), user: dict = Depends(verify_token)):
+    if not file.filename.endswith('.csv'):
+        raise HTTPException(status_code=400, detail="Arquivo deve ser CSV")
+    
+    # Ler conteúdo do arquivo
+    contents = await file.read()
+    decoded = contents.decode('utf-8')
+    csv_reader = csv.DictReader(io.StringIO(decoded), delimiter=';')
+    
+    importados = 0
+    falhas = 0
+    erros_detalhados = []
+    
+    # Cabeçalhos esperados: nome;telefone;email;endereco;sexo;observacao
+    for idx, row in enumerate(csv_reader, start=2):  # start=2 porque linha 1 é cabeçalho
+        try:
+            # Validar campos obrigatórios
+            if not row.get('nome') or not row.get('telefone'):
+                raise ValueError("Campos obrigatórios faltando: nome, telefone")
+            
+            # Validar email se fornecido
+            email = row.get('email', '').strip()
+            if email and '@' not in email:
+                raise ValueError(f"Email inválido: {email}")
+            
+            # Validar sexo se fornecido
+            sexo = row.get('sexo', '').strip().upper()
+            if sexo and sexo not in ['M', 'F', 'OUTRO']:
+                raise ValueError(f"Sexo inválido: {sexo}. Use M, F ou Outro")
+            
+            # Criar cliente
+            cliente_dict = {
+                'id': str(ObjectId()),
+                'nome': row['nome'].strip(),
+                'telefone': row['telefone'].strip(),
+                'email': email if email else None,
+                'endereco': row.get('endereco', '').strip() or None,
+                'sexo': sexo if sexo else None,
+                'observacao': row.get('observacao', '').strip() or None,
+                'data_cadastro': datetime.now(timezone.utc).isoformat()
+            }
+            
+            await db.clientes.insert_one(cliente_dict)
+            importados += 1
+            
+        except Exception as e:
+            falhas += 1
+            erros_detalhados.append({
+                'linha': idx,
+                'erro': str(e)
+            })
+    
+    return {
+        'importados': importados,
+        'falhas': falhas,
+        'erros_detalhados': erros_detalhados[:10]  # Limitar a 10 erros
+    }
+
 # Routes - Produtos (Protegidas)
 @api_router.post("/produtos", response_model=Produto)
 async def create_produto(produto: ProdutoCreate, user: dict = Depends(verify_token)):
