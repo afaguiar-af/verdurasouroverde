@@ -791,15 +791,18 @@ tfoot .total-row td {
 @media print {
   body {
     background: white;
+    margin: 0;
+    padding: 0;
   }
   
   .no-print {
-    display: none;
+    display: none !important;
   }
   
   .impressao-container {
     padding: 0;
     background: white;
+    margin: 0;
   }
   
   .notinha {
@@ -808,6 +811,21 @@ tfoot .total-row td {
     padding: 10mm;
     border: none;
     box-shadow: none;
+  }
+  
+  /* Hide all other elements except notinha */
+  body * {
+    visibility: hidden;
+  }
+  
+  .notinha, .notinha * {
+    visibility: visible;
+  }
+  
+  .notinha {
+    position: absolute;
+    left: 0;
+    top: 0;
   }
 }
 
