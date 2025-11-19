@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import "@/App.css";
-import { BrowserRouter, Routes, Route, Link, useNavigate, useParams, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, useNavigate, useParams, Navigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import DashboardCharts from "@/components/DashboardCharts";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { SidebarProvider, useSidebar } from "@/context/SidebarContext";
 import Login from "@/components/Login";
 import PrivateRoute from "@/components/PrivateRoute";
 
