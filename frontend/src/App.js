@@ -94,6 +94,71 @@ const Clientes = () => {
     setEditingId(null);
   };
 
+  const handleImportCSV = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setImportando(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await axios.post(`${API}/clientes/import-csv`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      const { importados, falhas, erros_detalhados } = response.data;
+      
+      let message = `Importação concluída: ${importados} clientes importados`;
+      if (falhas > 0) {
+        message += `, ${falhas} linhas com erro`;
+      }
+      
+      toast.success(message);
+      
+      if (erros_detalhados && erros_detalhados.length > 0) {
+        console.log('Erros detalhados:', erros_detalhados);
+      }
+
+      loadClientes();
+      
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Erro ao importar arquivo CSV');
+    } finally {
+      setImportando(false);
+      event.target.value = '';
+    }
+  };
+
+  const downloadCSVTemplate = (tipo) => {
+    let csvContent = '';
+    let filename = '';
+    
+    if (tipo === 'clientes') {
+      csvContent = 'nome;telefone;email;endereco;sexo;observacao\n';
+      csvContent += 'João Silva;(11) 98765-4321;joao@email.com;Rua A, 123;M;Cliente VIP\n';
+      csvContent += 'Maria Santos;(11) 91234-5678;maria@email.com;Rua B, 456;F;\n';
+      filename = 'modelo_clientes.csv';
+    } else if (tipo === 'vendas') {
+      csvContent = 'data_pedido;cliente_nome;cliente_telefone;total_itens;valor_total;observacao\n';
+      csvContent += '19/11/2025;João Silva;(11) 98765-4321;5;45.50;Pedido teste\n';
+      csvContent += '20/11/2025;Maria Santos;(11) 91234-5678;3;28.00;\n';
+      filename = 'modelo_vendas.csv';
+    }
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const filteredClientes = clientes.filter(c => 
     c.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.telefone.includes(searchTerm) ||
@@ -102,7 +167,29 @@ const Clientes = () => {
 
   return (
     <div className="page-content">
-      <h1 className="page-title" data-testid="clientes-title">Cadastro de Clientes</h1>
+      <div className="page-header">
+        <h1 className="page-title" data-testid="clientes-title">Cadastro de Clientes</h1>
+        <div className="header-actions">
+          <input
+            type="file"
+            id="csv-import-clientes"
+            accept=".csv"
+            style={{ display: 'none' }}
+            onChange={handleImportCSV}
+            data-testid="csv-import-clientes-input"
+          />
+          <button 
+            onClick={() => downloadCSVTemplate('clientes')}
+            className="btn btn-secondary"
+            data-testid="download-template-clientes-btn"
+          >
+            📄 Baixar Modelo CSV
+          </button>
+          <label htmlFor="csv-import-clientes" className="btn btn-success" data-testid="import-csv-clientes-btn">
+            {importando ? 'Importando...' : '📥 Importar CSV'}
+          </label>
+        </div>
+      </div>
       
       <div className="card">
         <form onSubmit={handleSubmit} className="form-grid" data-testid="cliente-form">
