@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7.0
+    container_name: quitanda-mongodb
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-admin123}
+      MONGO_INITDB_DATABASE: ${DB_NAME:-quitanda}
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    ports:
+      - "27017:27017"
+    networks:
+      - quitanda-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Backend (FastAPI)
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
+    container_name: quitanda-backend
+    restart: always
+    environment:
+      - MONGO_URL=mongodb://${MONGO_USERNAME:-admin}:${MONGO_PASSWORD:-admin123}@mongodb:27017
+      - DB_NAME=${DB_NAME:-quitanda}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-verduras-ouro-verde-secret-key-2025}
+      - CORS_ORIGINS=${CORS_ORIGINS:-*}
+      - APP_LOGIN=${APP_LOGIN:-beicola}
+      - APP_PASSWORD=${APP_PASSWORD:-adm@123}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - quitanda-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/api/analytics/resumo"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend (React + Nginx)
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend/Dockerfile
+    container_name: quitanda-frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - quitanda-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  mongodb_data:
+    driver: local
+  mongodb_config:
+    driver: local
+
+networks:
+  quitanda-network:
+    driver: bridge
