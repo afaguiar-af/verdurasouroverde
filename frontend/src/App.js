@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 import "@/App.css";
-import { BrowserRouter, Routes, Route, Link, useNavigate, useParams } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, useNavigate, useParams, Navigate } from "react-router-dom";
 import axios from "axios";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import DashboardCharts from "@/components/DashboardCharts";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
+import Login from "@/components/Login";
+import PrivateRoute from "@/components/PrivateRoute";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
