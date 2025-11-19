@@ -777,15 +777,33 @@ const Venda = () => {
           <div className="card">
             <h2 className="section-title">Adicionar Produtos</h2>
             <div className="form-inline">
-              <div className="form-group">
-                <label>Código (CP)</label>
+              <div className="form-group produto-search-container">
+                <label>Código (CP) ou Nome</label>
                 <input
                   data-testid="cp-input"
                   type="text"
                   value={cpInput}
                   onChange={(e) => handleCpChange(e.target.value)}
-                  placeholder="Digite o código"
+                  placeholder="Digite código ou nome do produto"
+                  onFocus={() => cpInput && produtosEncontrados.length > 0 && setMostrarPreview(true)}
                 />
+                
+                {mostrarPreview && produtosEncontrados.length > 0 && (
+                  <div className="produto-preview" data-testid="produto-preview">
+                    {produtosEncontrados.slice(0, 5).map(produto => (
+                      <div
+                        key={produto.id}
+                        className="produto-preview-item"
+                        onClick={() => selecionarProdutoPreview(produto)}
+                        data-testid={`preview-produto-${produto.cp}`}
+                      >
+                        <div className="preview-cp">CP: {produto.cp}</div>
+                        <div className="preview-nome">{produto.nome}</div>
+                        <div className="preview-preco">R$ {produto.valor_unitario.toFixed(2)}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {produtoSelecionado && (
