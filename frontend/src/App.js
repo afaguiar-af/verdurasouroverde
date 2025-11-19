@@ -1323,6 +1323,15 @@ const Dashboard = () => {
 
 // Layout with Navigation
 const Layout = ({ children }) => {
+  const { username, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+    toast.success('Logout realizado com sucesso!');
+  };
+
   return (
     <div className="layout">
       <nav className="navbar" data-testid="navbar">
@@ -1334,6 +1343,12 @@ const Layout = ({ children }) => {
           <Link to="/produtos" data-testid="nav-produtos">Produtos</Link>
           <Link to="/venda" data-testid="nav-venda">Venda</Link>
           <Link to="/historico" data-testid="nav-historico">Histórico</Link>
+          <div className="navbar-user">
+            <span className="user-name">{username}</span>
+            <button onClick={handleLogout} className="btn-logout" data-testid="logout-btn">
+              Sair
+            </button>
+          </div>
         </div>
       </nav>
       <main className="main-content">{children}</main>
