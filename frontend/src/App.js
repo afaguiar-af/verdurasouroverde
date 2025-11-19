@@ -26,6 +26,7 @@ const Clientes = () => {
   });
   const [editingId, setEditingId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [importando, setImportando] = useState(false);
 
   useEffect(() => {
     loadClientes();
