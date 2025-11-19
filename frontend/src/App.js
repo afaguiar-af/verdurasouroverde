@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Link, useNavigate, useParams } from "reac
 import axios from "axios";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
+import DashboardCharts from "@/components/DashboardCharts";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
