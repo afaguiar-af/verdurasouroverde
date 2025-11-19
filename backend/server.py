@@ -139,6 +139,7 @@ async def login(login_data: LoginRequest):
 
 # Routes - Clientes (Protegidas)
 @api_router.post("/clientes", response_model=Cliente)
+@api_router.post("/clientes", response_model=Cliente)
 async def create_cliente(cliente: ClienteCreate, user: dict = Depends(verify_token)):
     cliente_dict = cliente.model_dump()
     cliente_dict['data_cadastro'] = datetime.now(timezone.utc).isoformat()
@@ -146,6 +147,7 @@ async def create_cliente(cliente: ClienteCreate, user: dict = Depends(verify_tok
     await db.clientes.insert_one(cliente_dict)
     return Cliente(**cliente_dict)
 
+@api_router.get("/clientes", response_model=List[Cliente])
 @api_router.get("/clientes", response_model=List[Cliente])
 async def get_clientes(search: Optional[str] = None, user: dict = Depends(verify_token)):
     query = {}
@@ -161,12 +163,14 @@ async def get_clientes(search: Optional[str] = None, user: dict = Depends(verify
     return clientes
 
 @api_router.get("/clientes/{cliente_id}", response_model=Cliente)
+@api_router.get("/clientes/{cliente_id}", response_model=Cliente)
 async def get_cliente(cliente_id: str, user: dict = Depends(verify_token)):
     cliente = await db.clientes.find_one({"id": cliente_id}, {"_id": 0})
     if not cliente:
         raise HTTPException(status_code=404, detail="Cliente não encontrado")
     return cliente
 
+@api_router.put("/clientes/{cliente_id}", response_model=Cliente)
 @api_router.put("/clientes/{cliente_id}", response_model=Cliente)
 async def update_cliente(cliente_id: str, cliente: ClienteCreate, user: dict = Depends(verify_token)):
     cliente_dict = cliente.model_dump()
@@ -177,6 +181,7 @@ async def update_cliente(cliente_id: str, cliente: ClienteCreate, user: dict = D
     return updated_cliente
 
 @api_router.delete("/clientes/{cliente_id}")
+@api_router.delete("/clientes/{cliente_id}")
 async def delete_cliente(cliente_id: str, user: dict = Depends(verify_token)):
     result = await db.clientes.delete_one({"id": cliente_id})
     if result.deleted_count == 0:
@@ -185,6 +190,7 @@ async def delete_cliente(cliente_id: str, user: dict = Depends(verify_token)):
 
 # Routes - Produtos
 @api_router.post("/produtos", response_model=Produto)
+async def create_produto(produto: ProdutoCreate, user: dict = Depends(verify_token)):
 async def create_produto(produto: ProdutoCreate):
     last_produto = await db.produtos.find_one({}, {"_id": 0, "cp": 1}, sort=[("cp", -1)])
     next_cp = (last_produto["cp"] + 1) if last_produto and "cp" in last_produto else 1
@@ -196,6 +202,7 @@ async def create_produto(produto: ProdutoCreate):
     return Produto(**produto_dict)
 
 @api_router.get("/produtos", response_model=List[Produto])
+async def get_produtos(search: Optional[str] = None, tipo: Optional[str] = None, user: dict = Depends(verify_token)):
 async def get_produtos(search: Optional[str] = None, tipo: Optional[str] = None):
     query = {}
     if search:
@@ -206,6 +213,7 @@ async def get_produtos(search: Optional[str] = None, tipo: Optional[str] = None)
     return produtos
 
 @api_router.get("/produtos/cp/{cp}", response_model=Produto)
+async def get_produto_by_cp(cp: int, user: dict = Depends(verify_token)):
 async def get_produto_by_cp(cp: int):
     produto = await db.produtos.find_one({"cp": cp}, {"_id": 0})
     if not produto:
@@ -213,6 +221,7 @@ async def get_produto_by_cp(cp: int):
     return produto
 
 @api_router.get("/produtos/{produto_id}", response_model=Produto)
+async def get_produto(produto_id: str, user: dict = Depends(verify_token)):
 async def get_produto(produto_id: str):
     produto = await db.produtos.find_one({"id": produto_id}, {"_id": 0})
     if not produto:
@@ -220,6 +229,7 @@ async def get_produto(produto_id: str):
     return produto
 
 @api_router.put("/produtos/{produto_id}", response_model=Produto)
+async def update_produto(produto_id: str, produto: ProdutoCreate, user: dict = Depends(verify_token)):
 async def update_produto(produto_id: str, produto: ProdutoCreate):
     produto_dict = produto.model_dump()
     result = await db.produtos.update_one({"id": produto_id}, {"$set": produto_dict})
@@ -229,6 +239,7 @@ async def update_produto(produto_id: str, produto: ProdutoCreate):
     return updated_produto
 
 @api_router.delete("/produtos/{produto_id}")
+async def delete_produto(produto_id: str, user: dict = Depends(verify_token)):
 async def delete_produto(produto_id: str):
     result = await db.produtos.delete_one({"id": produto_id})
     if result.deleted_count == 0:
@@ -237,6 +248,7 @@ async def delete_produto(produto_id: str):
 
 # Routes - Pedidos
 @api_router.post("/pedidos", response_model=Pedido)
+async def create_pedido(pedido: PedidoCreate, user: dict = Depends(verify_token)):
 async def create_pedido(pedido: PedidoCreate):
     pedido_dict = pedido.model_dump()
     pedido_dict['data_pedido'] = datetime.now(timezone.utc).isoformat()
@@ -252,6 +264,7 @@ async def create_pedido(pedido: PedidoCreate):
     await db.pedidos.insert_one(pedido_dict)
     return Pedido(**pedido_dict)
 
+@api_router.get("/pedidos")
 @api_router.get("/pedidos")
 async def get_pedidos(
     dataInicio: Optional[str] = None,
@@ -284,6 +297,7 @@ async def get_pedidos(
     }
 
 @api_router.get("/pedidos/{pedido_id}", response_model=Pedido)
+async def get_pedido(pedido_id: str, user: dict = Depends(verify_token)):
 async def get_pedido(pedido_id: str):
     pedido = await db.pedidos.find_one({"id": pedido_id}, {"_id": 0})
     if not pedido:
@@ -291,6 +305,7 @@ async def get_pedido(pedido_id: str):
     return pedido
 
 # Analytics Routes
+@api_router.get("/analytics/resumo")
 @api_router.get("/analytics/resumo")
 async def get_resumo(
     dataInicio: Optional[str] = None,
@@ -354,6 +369,7 @@ async def get_resumo(
     }
 
 @api_router.get("/analytics/vendas-por-dia")
+@api_router.get("/analytics/vendas-por-dia")
 async def get_vendas_por_dia(
     dataInicio: Optional[str] = None,
     dataFim: Optional[str] = None,
@@ -378,6 +394,7 @@ async def get_vendas_por_dia(
     
     return result
 
+@api_router.get("/analytics/vendas-por-mes")
 @api_router.get("/analytics/vendas-por-mes")
 async def get_vendas_por_mes(
     ano: Optional[int] = None,
@@ -406,6 +423,7 @@ async def get_vendas_por_mes(
     return result
 
 @api_router.get("/analytics/vendas-por-produto")
+@api_router.get("/analytics/vendas-por-produto")
 async def get_vendas_por_produto(
     dataInicio: Optional[str] = None,
     dataFim: Optional[str] = None,
@@ -433,6 +451,7 @@ async def get_vendas_por_produto(
     return result
 
 @api_router.get("/analytics/top-produtos")
+@api_router.get("/analytics/top-produtos")
 async def get_top_produtos(
     dataInicio: Optional[str] = None,
     dataFim: Optional[str] = None,
@@ -457,6 +476,7 @@ async def get_top_produtos(
     
     return result
 
+@api_router.get("/analytics/vendas-por-categoria")
 @api_router.get("/analytics/vendas-por-categoria")
 async def get_vendas_por_categoria(
     dataInicio: Optional[str] = None,
@@ -484,6 +504,7 @@ async def get_vendas_por_categoria(
     
     return result
 
+@api_router.get("/analytics/produtos-por-mes")
 @api_router.get("/analytics/produtos-por-mes")
 async def get_produtos_por_mes(
     dataInicio: Optional[str] = None,
@@ -524,6 +545,7 @@ async def get_produtos_por_mes(
     
     return result
 
+@api_router.get("/analytics/vendas-cliente-timeline")
 @api_router.get("/analytics/vendas-cliente-timeline")
 async def get_vendas_cliente_timeline(
     clienteId: str,
