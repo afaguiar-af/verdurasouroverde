@@ -569,6 +569,58 @@ tfoot .total-row td {
   accent-color: #4CAF50;
 }
 
+/* Produto Search Preview */
+.produto-search-container {
+  position: relative;
+}
+
+.produto-preview {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 2px solid #c8e6c9;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 100;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.produto-preview-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  border-bottom: 1px solid #f1f8f4;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 1rem;
+  align-items: center;
+}
+
+.produto-preview-item:hover {
+  background: #e8f5e9;
+}
+
+.preview-cp {
+  font-weight: 600;
+  color: #4CAF50;
+  font-size: 0.85rem;
+}
+
+.preview-nome {
+  color: #2d5016;
+  font-weight: 500;
+}
+
+.preview-preco {
+  color: #2d5016;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
 /* Cliente Selection */
 .cliente-list {
   border: 2px solid #c8e6c9;
