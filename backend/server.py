@@ -495,7 +495,8 @@ async def get_vendas_por_categoria(
 async def get_produtos_por_mes(
     dataInicio: Optional[str] = None,
     dataFim: Optional[str] = None,
-    limitProdutos: int = 5
+    limitProdutos: int = 5,
+    user: dict = Depends(verify_token)
 ):
     query = {}
     if dataInicio and dataFim:
