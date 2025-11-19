@@ -137,9 +137,9 @@ async def login(login_data: LoginRequest):
     
     return LoginResponse(token=access_token, username=login_data.username)
 
-# Routes - Clientes
+# Routes - Clientes (Protegidas)
 @api_router.post("/clientes", response_model=Cliente)
-async def create_cliente(cliente: ClienteCreate):
+async def create_cliente(cliente: ClienteCreate, user: dict = Depends(verify_token)):
     cliente_dict = cliente.model_dump()
     cliente_dict['data_cadastro'] = datetime.now(timezone.utc).isoformat()
     cliente_dict['id'] = str(ObjectId())
