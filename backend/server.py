@@ -359,7 +359,8 @@ async def get_resumo(
 async def get_vendas_por_dia(
     dataInicio: Optional[str] = None,
     dataFim: Optional[str] = None,
-    clienteId: Optional[str] = None
+    clienteId: Optional[str] = None,
+    user: dict = Depends(verify_token)
 ):
     query = {}
     if dataInicio and dataFim:
