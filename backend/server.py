@@ -308,6 +308,79 @@ async def delete_pedido(pedido_id: str, user: dict = Depends(verify_token)):
     
     return {"message": "Pedido excluído com sucesso"}
 
+@api_router.post("/pedidos/import-csv")
+async def import_csv(file: UploadFile = File(...), user: dict = Depends(verify_token)):
+    if not file.filename.endswith('.csv'):
+        raise HTTPException(status_code=400, detail="Arquivo deve ser CSV")
+    
+    # Ler conteúdo do arquivo
+    contents = await file.read()
+    decoded = contents.decode('utf-8')
+    csv_reader = csv.DictReader(io.StringIO(decoded), delimiter=';')
+    
+    importados = 0
+    falhas = 0
+    erros_detalhados = []
+    
+    # Cabeçalhos esperados: data_pedido;cliente_nome;cliente_telefone;total_itens;valor_total;observacao
+    for idx, row in enumerate(csv_reader, start=2):  # start=2 porque linha 1 é cabeçalho
+        try:
+            # Validar campos obrigatórios
+            if not row.get('data_pedido') or not row.get('valor_total'):
+                raise ValueError("Campos obrigatórios faltando: data_pedido, valor_total")
+            
+            # Parse de data (suporta dd/MM/yyyy e yyyy-MM-dd)
+            data_str = row['data_pedido'].strip()
+            try:
+                if '/' in data_str:
+                    # Formato dd/MM/yyyy
+                    parts = data_str.split('/')
+                    data_pedido = datetime(int(parts[2]), int(parts[1]), int(parts[0]), tzinfo=timezone.utc)
+                else:
+                    # Formato yyyy-MM-dd
+                    data_pedido = datetime.fromisoformat(data_str.replace('Z', '+00:00'))
+                    if data_pedido.tzinfo is None:
+                        data_pedido = data_pedido.replace(tzinfo=timezone.utc)
+            except:
+                raise ValueError(f"Data inválida: {data_str}")
+            
+            # Parse de valores numéricos
+            try:
+                valor_total = float(row['valor_total'].replace(',', '.'))
+                total_itens = float(row.get('total_itens', 0))
+            except:
+                raise ValueError("Valores numéricos inválidos")
+            
+            # Criar pedido
+            pedido_dict = {
+                'id': str(ObjectId()),
+                'data_pedido': data_pedido.isoformat(),
+                'cliente_id': None,
+                'cliente_nome': row.get('cliente_nome', '').strip() or None,
+                'cliente_telefone': row.get('cliente_telefone', '').strip() or None,
+                'cliente_endereco': None,
+                'total_itens': total_itens,
+                'valor_total': valor_total,
+                'observacao': row.get('observacao', '').strip() or None,
+                'itens': []  # Importação simplificada sem itens detalhados
+            }
+            
+            await db.pedidos.insert_one(pedido_dict)
+            importados += 1
+            
+        except Exception as e:
+            falhas += 1
+            erros_detalhados.append({
+                'linha': idx,
+                'erro': str(e)
+            })
+    
+    return {
+        'importados': importados,
+        'falhas': falhas,
+        'erros_detalhados': erros_detalhados[:10]  # Limitar a 10 erros para não sobrecarregar resposta
+    }
+
 # Analytics Routes (Protegidas)
 @api_router.get("/analytics/resumo")
 async def get_resumo(
