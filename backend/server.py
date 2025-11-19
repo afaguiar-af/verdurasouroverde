@@ -258,7 +258,8 @@ async def get_pedidos(
     dataFim: Optional[str] = None,
     clienteId: Optional[str] = None,
     page: int = 1,
-    pageSize: int = 20
+    pageSize: int = 20,
+    user: dict = Depends(verify_token)
 ):
     query = {}
     
