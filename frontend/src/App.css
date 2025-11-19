@@ -1083,6 +1083,23 @@ tfoot .total-row td {
 
 /* Responsive */
 @media (max-width: 768px) {
+  .sidebar {
+    width: 280px;
+  }
+  
+  .sidebar-overlay {
+    display: block;
+  }
+  
+  .app-content.with-sidebar {
+    margin-left: 0;
+  }
+  
+  .menu-toggle-button {
+    top: 0.75rem;
+    left: 0.75rem;
+  }
+  
   .venda-grid {
     grid-template-columns: 1fr;
   }
@@ -1094,15 +1111,6 @@ tfoot .total-row td {
   .form-inline {
     flex-direction: column;
     align-items: stretch;
-  }
-  
-  .navbar {
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .navbar-links {
-    gap: 1rem;
   }
   
   .page-header {
@@ -1121,5 +1129,9 @@ tfoot .total-row td {
   
   .filter-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .app-content {
+    padding: 1rem;
   }
 }
