@@ -1253,19 +1253,29 @@ tfoot .total-row td {
 @media (max-width: 768px) {
   .sidebar {
     width: 280px;
+    transform: translateX(-100%);
+  }
+  
+  .sidebar.open {
+    transform: translateX(0);
   }
   
   .sidebar-overlay {
     display: block;
   }
   
+  .app-content {
+    margin-left: 0 !important;
+  }
+  
   .app-content.with-sidebar {
-    margin-left: 0;
+    margin-left: 0 !important;
   }
   
   .menu-toggle-button {
     top: 0.75rem;
     left: 0.75rem;
+    display: flex !important;
   }
   
   .venda-grid {
