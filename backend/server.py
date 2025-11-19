@@ -168,7 +168,7 @@ async def get_cliente(cliente_id: str, user: dict = Depends(verify_token)):
     return cliente
 
 @api_router.put("/clientes/{cliente_id}", response_model=Cliente)
-async def update_cliente(cliente_id: str, cliente: ClienteCreate):
+async def update_cliente(cliente_id: str, cliente: ClienteCreate, user: dict = Depends(verify_token)):
     cliente_dict = cliente.model_dump()
     result = await db.clientes.update_one({"id": cliente_id}, {"$set": cliente_dict})
     if result.matched_count == 0:
