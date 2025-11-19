@@ -4,15 +4,33 @@ const SidebarContext = createContext(null);
 
 export const SidebarProvider = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
-    // Check localStorage for saved state
+    // Check if mobile
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) return false;
+    
+    // Check localStorage for saved state on desktop
     const saved = localStorage.getItem('sidebarOpen');
     return saved !== null ? JSON.parse(saved) : true;
   });
 
   useEffect(() => {
-    // Save state to localStorage
-    localStorage.setItem('sidebarOpen', JSON.stringify(isSidebarOpen));
+    // Save state to localStorage only on desktop
+    if (window.innerWidth >= 768) {
+      localStorage.setItem('sidebarOpen', JSON.stringify(isSidebarOpen));
+    }
   }, [isSidebarOpen]);
+
+  useEffect(() => {
+    // Handle resize
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setIsSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(prev => !prev);
