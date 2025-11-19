@@ -999,6 +999,8 @@ const ListaVendas = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [pageSize, setPageSize] = useState(20);
   const [selectedPedido, setSelectedPedido] = useState(null);
+  const [pedidoParaExcluir, setPedidoParaExcluir] = useState(null);
+  const [importando, setImportando] = useState(false);
 
   useEffect(() => {
     loadClientes();
