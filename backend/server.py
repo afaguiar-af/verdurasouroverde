@@ -32,9 +32,9 @@ SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'verduras-ouro-verde-secret-key-20
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_HOURS = 8
 
-# Credenciais fixas (hardcoded conforme especificação)
-FIXED_USERNAME = "beicola"
-FIXED_PASSWORD = "adm@123"
+# Credenciais fixas (carregadas de variáveis de ambiente ou valores padrão)
+FIXED_USERNAME = os.environ.get('APP_LOGIN', 'beicola')
+FIXED_PASSWORD = os.environ.get('APP_PASSWORD', 'adm@123')
 
 # Models
 class LoginRequest(BaseModel):
