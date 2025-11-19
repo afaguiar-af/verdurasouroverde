@@ -177,7 +177,7 @@ async def update_cliente(cliente_id: str, cliente: ClienteCreate, user: dict = D
     return updated_cliente
 
 @api_router.delete("/clientes/{cliente_id}")
-async def delete_cliente(cliente_id: str):
+async def delete_cliente(cliente_id: str, user: dict = Depends(verify_token)):
     result = await db.clientes.delete_one({"id": cliente_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Cliente não encontrado")
