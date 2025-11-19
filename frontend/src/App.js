@@ -1300,6 +1300,13 @@ const ListaVendas = () => {
                     >
                       Reimprimir
                     </button>
+                    <button
+                      className="btn-icon btn-delete"
+                      onClick={() => setPedidoParaExcluir(pedido)}
+                      data-testid={`delete-pedido-${pedido.id}`}
+                    >
+                      Excluir
+                    </button>
                   </td>
                 </tr>
               ))}
