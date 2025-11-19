@@ -33,7 +33,7 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_HOURS = 8
 
 # Credenciais fixas (hardcoded conforme especificação)
-FIXED_USERNAME = "beiculo"
+FIXED_USERNAME = "beicola"
 FIXED_PASSWORD = "adm@123"
 
 # Models
