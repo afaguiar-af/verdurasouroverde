@@ -30,6 +30,7 @@ const Login = () => {
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
+          <img src="/logo.svg" alt="Logo Verduras Ouro Verde" className="login-logo" />
           <h1>VERDURAS OURO VERDE</h1>
           <p>Sistema de Gestão</p>
         </div>
