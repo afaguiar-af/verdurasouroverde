@@ -1322,10 +1322,12 @@ const Dashboard = () => {
   return <DashboardCharts />;
 };
 
-// Layout with Navigation
-const Layout = ({ children }) => {
+// Sidebar Component
+const Sidebar = () => {
   const { username, logout } = useAuth();
+  const { isSidebarOpen, closeSidebar } = useSidebar();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     logout();
@@ -1333,27 +1335,109 @@ const Layout = ({ children }) => {
     toast.success('Logout realizado com sucesso!');
   };
 
+  const isActive = (path) => {
+    return location.pathname === path;
+  };
+
   return (
-    <div className="layout">
-      <nav className="navbar" data-testid="navbar">
-        <div className="navbar-brand">
-          <img src="/logo.svg" alt="Logo Verduras Ouro Verde" className="navbar-logo" />
-          <h1>VERDURAS OURO VERDE</h1>
+    <>
+      <div className={`sidebar ${isSidebarOpen ? 'open' : 'closed'}`} data-testid="sidebar">
+        <div className="sidebar-header">
+          <img src="/logo.svg" alt="Logo" className="sidebar-logo" />
+          <h2 className="sidebar-title">VERDURAS OURO VERDE</h2>
         </div>
-        <div className="navbar-links">
-          <Link to="/clientes" data-testid="nav-clientes">Clientes</Link>
-          <Link to="/produtos" data-testid="nav-produtos">Produtos</Link>
-          <Link to="/venda" data-testid="nav-venda">Venda</Link>
-          <Link to="/historico" data-testid="nav-historico">Histórico</Link>
-          <div className="navbar-user">
-            <span className="user-name">{username}</span>
-            <button onClick={handleLogout} className="btn-logout" data-testid="logout-btn">
-              Sair
-            </button>
+
+        <nav className="sidebar-nav">
+          <Link 
+            to="/venda" 
+            className={`sidebar-link ${isActive('/venda') ? 'active' : ''}`}
+            data-testid="nav-venda"
+            onClick={() => window.innerWidth < 768 && closeSidebar()}
+          >
+            <span className="sidebar-icon">🛒</span>
+            <span className="sidebar-text">Vendas</span>
+          </Link>
+
+          <Link 
+            to="/clientes" 
+            className={`sidebar-link ${isActive('/clientes') ? 'active' : ''}`}
+            data-testid="nav-clientes"
+            onClick={() => window.innerWidth < 768 && closeSidebar()}
+          >
+            <span className="sidebar-icon">👥</span>
+            <span className="sidebar-text">Clientes</span>
+          </Link>
+
+          <Link 
+            to="/produtos" 
+            className={`sidebar-link ${isActive('/produtos') ? 'active' : ''}`}
+            data-testid="nav-produtos"
+            onClick={() => window.innerWidth < 768 && closeSidebar()}
+          >
+            <span className="sidebar-icon">🥬</span>
+            <span className="sidebar-text">Produtos</span>
+          </Link>
+
+          <Link 
+            to="/historico" 
+            className={`sidebar-link ${isActive('/historico') ? 'active' : ''}`}
+            data-testid="nav-historico"
+            onClick={() => window.innerWidth < 768 && closeSidebar()}
+          >
+            <span className="sidebar-icon">📊</span>
+            <span className="sidebar-text">Histórico</span>
+          </Link>
+        </nav>
+
+        <div className="sidebar-footer">
+          <div className="sidebar-user">
+            <span className="sidebar-icon">👤</span>
+            <span className="sidebar-text">{username}</span>
           </div>
+          <button 
+            onClick={handleLogout} 
+            className="sidebar-logout"
+            data-testid="logout-btn"
+          >
+            <span className="sidebar-icon">🚪</span>
+            <span className="sidebar-text">Sair</span>
+          </button>
         </div>
-      </nav>
-      <main className="main-content">{children}</main>
+      </div>
+
+      {isSidebarOpen && (
+        <div 
+          className="sidebar-overlay" 
+          onClick={closeSidebar}
+          data-testid="sidebar-overlay"
+        />
+      )}
+    </>
+  );
+};
+
+// Layout with Sidebar Navigation
+const Layout = ({ children }) => {
+  const { isSidebarOpen, toggleSidebar } = useSidebar();
+
+  return (
+    <div className="app-layout">
+      <Sidebar />
+      
+      {!isSidebarOpen && (
+        <button
+          className="menu-toggle-button"
+          onClick={toggleSidebar}
+          data-testid="menu-toggle-btn"
+          aria-label="Abrir menu"
+        >
+          ☰
+        </button>
+      )}
+
+      <main className={`app-content ${isSidebarOpen ? 'with-sidebar' : ''}`}>
+        {children}
+      </main>
     </div>
   );
 };
