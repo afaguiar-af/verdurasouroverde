@@ -161,7 +161,7 @@ async def get_clientes(search: Optional[str] = None, user: dict = Depends(verify
     return clientes
 
 @api_router.get("/clientes/{cliente_id}", response_model=Cliente)
-async def get_cliente(cliente_id: str):
+async def get_cliente(cliente_id: str, user: dict = Depends(verify_token)):
     cliente = await db.clientes.find_one({"id": cliente_id}, {"_id": 0})
     if not cliente:
         raise HTTPException(status_code=404, detail="Cliente não encontrado")
