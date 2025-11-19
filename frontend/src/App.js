@@ -1184,13 +1184,38 @@ const ListaVendas = () => {
 
   const formatarData = (isoString) => {
     const date = new Date(isoString);
-    return date.toLocaleString('pt-BR', {
+    return date.toLocaleDateString('pt-BR', {
       day: '2-digit',
       month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      year: 'numeric'
     });
+  };
+
+  const downloadCSVTemplate = (tipo) => {
+    let csvContent = '';
+    let filename = '';
+    
+    if (tipo === 'clientes') {
+      csvContent = 'nome;telefone;email;endereco;sexo;observacao\n';
+      csvContent += 'João Silva;(11) 98765-4321;joao@email.com;Rua A, 123;M;Cliente VIP\n';
+      csvContent += 'Maria Santos;(11) 91234-5678;maria@email.com;Rua B, 456;F;\n';
+      filename = 'modelo_clientes.csv';
+    } else if (tipo === 'vendas') {
+      csvContent = 'data_pedido;cliente_nome;cliente_telefone;total_itens;valor_total;observacao\n';
+      csvContent += '19/11/2025;João Silva;(11) 98765-4321;5;45.50;Pedido teste\n';
+      csvContent += '20/11/2025;Maria Santos;(11) 91234-5678;3;28.00;\n';
+      filename = 'modelo_vendas.csv';
+    }
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleDeletePedido = async () => {
