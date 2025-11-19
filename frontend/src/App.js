@@ -1391,6 +1391,46 @@ const ListaVendas = () => {
           </div>
         </div>
       )}
+
+      {pedidoParaExcluir && (
+        <div className="modal-overlay" onClick={() => setPedidoParaExcluir(null)}>
+          <div className="modal-content modal-confirm" onClick={(e) => e.stopPropagation()} data-testid="delete-confirm-modal">
+            <div className="modal-header">
+              <h2>Confirmar exclusão</h2>
+              <button className="close-btn" onClick={() => setPedidoParaExcluir(null)}>×</button>
+            </div>
+            <div className="modal-body">
+              <p className="confirm-message">
+                Tem certeza que deseja excluir esta venda?
+              </p>
+              <div className="confirm-details">
+                <p><strong>ID do Pedido:</strong> {pedidoParaExcluir.id.substring(0, 8)}</p>
+                <p><strong>Cliente:</strong> {pedidoParaExcluir.cliente_nome || "Cliente não identificado"}</p>
+                <p><strong>Valor:</strong> R$ {pedidoParaExcluir.valor_total.toFixed(2)}</p>
+              </div>
+              <p className="warning-message">
+                ⚠️ Este processo não poderá ser desfeito.
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => setPedidoParaExcluir(null)}
+                data-testid="cancel-delete-btn"
+              >
+                Cancelar
+              </button>
+              <button 
+                className="btn btn-danger" 
+                onClick={handleDeletePedido}
+                data-testid="confirm-delete-btn"
+              >
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
