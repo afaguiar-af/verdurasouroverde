@@ -90,37 +90,7 @@ class PedidoCreate(BaseModel):
     observacao: Optional[str] = None
     itens: List[ItemPedido]
 
-# Authentication Functions
-def create_access_token(data: dict) -> str:
-    to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
-
-def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
-    try:
-        token = credentials.credentials
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        return payload
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expirado")
-    except jwt.JWTError:
-        raise HTTPException(status_code=401, detail="Token inválido")
-
-# Routes - Authentication
-@api_router.post("/auth/login", response_model=LoginResponse)
-async def login(login_data: LoginRequest):
-    # Verificar credenciais fixas
-    if login_data.username != FIXED_USERNAME or login_data.password != FIXED_PASSWORD:
-        raise HTTPException(status_code=401, detail="Usuário ou senha inválidos")
-    
-    # Gerar token JWT
-    access_token = create_access_token(data={"username": login_data.username})
-    
-    return LoginResponse(token=access_token, username=login_data.username)
-
-# Routes - Clientes (Protegidas)
+# Routes - Clientes
 @api_router.post("/clientes", response_model=Cliente)
 async def create_cliente(cliente: ClienteCreate, user: dict = Depends(verify_token)):
     cliente_dict = cliente.model_dump()
