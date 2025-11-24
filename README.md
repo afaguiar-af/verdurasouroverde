@@ -147,9 +147,7 @@ docker-compose ps
 ### 5. Acessar a aplicação
 Abra seu navegador em: **http://localhost**
 
-### 6. Login
-- **Usuário:** beicola
-- **Senha:** adm@123
+A aplicação será aberta diretamente na tela de vendas, sem necessidade de login!
 
 ---
 
