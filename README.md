@@ -47,10 +47,10 @@ Sistema web completo para gerenciamento de quitanda de hortifrúti, substituindo
 - Análise por período, produto, categoria
 - Relatórios de faturamento
 
-✅ **Autenticação e Segurança**
-- Login protegido com JWT
-- Credenciais configuráveis via ambiente
-- Sessões seguras
+✅ **Sistema 100% Local**
+- Sem necessidade de autenticação
+- Acesso direto a todas as funcionalidades
+- Pronto para uso imediato
 
 ---
 
