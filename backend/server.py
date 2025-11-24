@@ -1,5 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Query, Depends, UploadFile, File
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import FastAPI, APIRouter, HTTPException, Query, UploadFile, File
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -11,7 +10,6 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone, timedelta
 from bson import ObjectId
 from collections import defaultdict
-import jwt
 import csv
 import io
 
