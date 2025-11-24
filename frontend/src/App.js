@@ -1673,21 +1673,6 @@ const Sidebar = () => {
             <span className="sidebar-text">Histórico</span>
           </Link>
         </nav>
-
-        <div className="sidebar-footer">
-          <div className="sidebar-user">
-            <span className="sidebar-icon">👤</span>
-            <span className="sidebar-text">{username}</span>
-          </div>
-          <button 
-            onClick={handleLogout} 
-            className="sidebar-logout"
-            data-testid="logout-btn"
-          >
-            <span className="sidebar-icon">🚪</span>
-            <span className="sidebar-text">Sair</span>
-          </button>
-        </div>
       </div>
 
       {isSidebarOpen && (
