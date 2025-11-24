@@ -271,7 +271,6 @@ async def get_pedidos(
     clienteId: Optional[str] = None,
     page: int = 1,
     pageSize: int = 20,
-    user: dict = Depends(verify_token)
 ):
     query = {}
     
@@ -396,7 +395,6 @@ async def import_csv(file: UploadFile = File(...)):
 async def get_resumo(
     dataInicio: Optional[str] = None,
     dataFim: Optional[str] = None,
-    user: dict = Depends(verify_token)
 ):
     query = {}
     if dataInicio and dataFim:
@@ -460,7 +458,6 @@ async def get_vendas_por_dia(
     dataInicio: Optional[str] = None,
     dataFim: Optional[str] = None,
     clienteId: Optional[str] = None,
-    user: dict = Depends(verify_token)
 ):
     query = {}
     if dataInicio and dataFim:
@@ -485,7 +482,6 @@ async def get_vendas_por_dia(
 async def get_vendas_por_mes(
     ano: Optional[int] = None,
     clienteId: Optional[str] = None,
-    user: dict = Depends(verify_token)
 ):
     query = {}
     if ano:
@@ -514,7 +510,6 @@ async def get_vendas_por_produto(
     dataInicio: Optional[str] = None,
     dataFim: Optional[str] = None,
     clienteId: Optional[str] = None,
-    user: dict = Depends(verify_token)
 ):
     query = {}
     if dataInicio and dataFim:
@@ -542,7 +537,6 @@ async def get_top_produtos(
     dataInicio: Optional[str] = None,
     dataFim: Optional[str] = None,
     limit: int = 10,
-    user: dict = Depends(verify_token)
 ):
     query = {}
     if dataInicio and dataFim:
@@ -567,7 +561,6 @@ async def get_top_produtos(
 async def get_vendas_por_categoria(
     dataInicio: Optional[str] = None,
     dataFim: Optional[str] = None,
-    user: dict = Depends(verify_token)
 ):
     query = {}
     if dataInicio and dataFim:
@@ -596,7 +589,6 @@ async def get_produtos_por_mes(
     dataInicio: Optional[str] = None,
     dataFim: Optional[str] = None,
     limitProdutos: int = 5,
-    user: dict = Depends(verify_token)
 ):
     query = {}
     if dataInicio and dataFim:
@@ -637,7 +629,6 @@ async def get_vendas_cliente_timeline(
     clienteId: str,
     dataInicio: Optional[str] = None,
     dataFim: Optional[str] = None,
-    user: dict = Depends(verify_token)
 ):
     query = {"cliente_id": clienteId}
     if dataInicio and dataFim:
