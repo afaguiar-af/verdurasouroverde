@@ -186,17 +186,10 @@ A aplicação será aberta diretamente na tela de vendas, sem necessidade de log
 MONGO_USERNAME=admin
 MONGO_PASSWORD=admin123
 DB_NAME=quitanda
-JWT_SECRET_KEY=verduras-ouro-verde-secret-key-2025
 CORS_ORIGINS=*
-APP_LOGIN=beicola
-APP_PASSWORD=adm@123
 ```
 
-### Como Alterar Login e Senha
-
-1. Edite o arquivo `.env`
-2. Modifique APP_LOGIN e APP_PASSWORD
-3. Reinicie: `docker-compose restart backend`
+**Nota:** O sistema não requer autenticação e todas as rotas são públicas para uso local.
 
 ---
 
