@@ -279,9 +279,9 @@ sudo lsof -i :80
 sudo service apache2 stop
 ```
 
-### Erro de autenticação
-1. Verifique `.env`
-2. Reinicie backend
+### Erro ao conectar com backend
+1. Verifique se todos os containers estão rodando: `docker-compose ps`
+2. Reinicie: `docker-compose restart`
 3. Limpe cache do navegador
 
 ---
