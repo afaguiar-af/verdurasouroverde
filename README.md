@@ -294,10 +294,8 @@ docker-compose up -d
 
 # Acesse
 http://localhost
-
-# Login
-Usuário: beicola
-Senha: adm@123
 ```
+
+**Sistema 100% local, sem autenticação, pronto para usar!**
 
 **Boas vendas! 🥬🍅🥕**
