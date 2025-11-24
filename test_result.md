@@ -101,3 +101,109 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "Remover completamente qualquer tipo de autenticação (login e senha) e eliminar o uso de JWT, deixando o sistema 100% livre de autenticação, pronto para rodar totalmente local, sem bloqueios e sem tela de login."
+
+backend:
+  - task: "Remover endpoint /auth/login"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Endpoint /auth/login removido completamente. Todas as rotas já estão públicas."
+
+  - task: "Remover dependências JWT do backend"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Imports JWT, verify_token e Depends removidos. Backend 100% limpo."
+
+  - task: "Tornar todas rotas públicas"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Todas as rotas (/clientes, /produtos, /pedidos, /analytics) estão públicas e acessíveis sem token."
+
+frontend:
+  - task: "Deletar componentes de autenticação"
+    implemented: true
+    working: true
+    file: "frontend/src/components/Login.js, PrivateRoute.js, context/AuthContext.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Arquivos Login.js, PrivateRoute.js e AuthContext.js deletados com sucesso."
+
+  - task: "Remover imports e lógica de Auth do App.js"
+    implemented: true
+    working: true
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Imports AuthProvider, useAuth, Login e PrivateRoute removidos. App.js refatorado para rotas públicas."
+
+  - task: "Remover botão de logout e username do Sidebar"
+    implemented: true
+    working: true
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Footer do sidebar com botão de logout e username removido. Sidebar limpo."
+
+  - task: "App inicia diretamente na tela de Vendas"
+    implemented: true
+    working: true
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Rota / redireciona para /venda. Tela de login removida. Screenshot confirma funcionamento."
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Validar rotas públicas do backend"
+    - "Testar acesso a /clientes, /produtos, /pedidos, /analytics sem token"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: "Remoção de autenticação concluída no backend e frontend. Backend: removido endpoint /auth/login, JWT, verify_token. Todas rotas públicas. Frontend: deletados Login.js, PrivateRoute.js, AuthContext.js. App.js refatorado para rotas públicas. README e .env.example atualizados. Screenshot confirma que app inicia direto na tela de Vendas sem login. Aguardando teste do backend para validar acesso público às APIs."
