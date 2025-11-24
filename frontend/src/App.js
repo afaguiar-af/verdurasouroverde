@@ -1617,16 +1617,8 @@ const Dashboard = () => {
 
 // Sidebar Component
 const Sidebar = () => {
-  const { username, logout } = useAuth();
   const { isSidebarOpen, closeSidebar } = useSidebar();
-  const navigate = useNavigate();
   const location = useLocation();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-    toast.success('Logout realizado com sucesso!');
-  };
 
   const isActive = (path) => {
     return location.pathname === path;
