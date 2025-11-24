@@ -59,7 +59,6 @@ Sistema web completo para gerenciamento de quitanda de hortifrúti, substituindo
 ### Backend
 - **FastAPI** (Python) - Framework web moderno e rápido
 - **MongoDB** - Banco de dados NoSQL
-- **JWT** - Autenticação segura
 - **Motor** - Driver async para MongoDB
 
 ### Frontend
