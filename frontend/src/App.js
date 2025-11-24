@@ -5,10 +5,7 @@ import axios from "axios";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import DashboardCharts from "@/components/DashboardCharts";
-import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { SidebarProvider, useSidebar } from "@/context/SidebarContext";
-import Login from "@/components/Login";
-import PrivateRoute from "@/components/PrivateRoute";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
