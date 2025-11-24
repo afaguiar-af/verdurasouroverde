@@ -344,7 +344,7 @@ class BackendTester:
         self.cleanup_test_data()
         
         # Summary
-        self.print_summary()
+        return self.print_summary()
     
     def print_summary(self):
         """Print test summary"""
