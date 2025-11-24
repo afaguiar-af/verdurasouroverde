@@ -1716,20 +1716,17 @@ function App() {
   return (
     <div className="App">
       <BrowserRouter>
-        <AuthProvider>
-          <SidebarProvider>
-            <Toaster position="top-right" richColors />
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/" element={<Navigate to="/venda" replace />} />
-              <Route path="/clientes" element={<PrivateRoute><Layout><Clientes /></Layout></PrivateRoute>} />
-              <Route path="/produtos" element={<PrivateRoute><Layout><Produtos /></Layout></PrivateRoute>} />
-              <Route path="/venda" element={<PrivateRoute><Layout><Venda /></Layout></PrivateRoute>} />
-              <Route path="/historico" element={<PrivateRoute><Layout><Historico /></Layout></PrivateRoute>} />
-              <Route path="/impressao/:pedidoId" element={<PrivateRoute><Impressao /></PrivateRoute>} />
-            </Routes>
-          </SidebarProvider>
-        </AuthProvider>
+        <SidebarProvider>
+          <Toaster position="top-right" richColors />
+          <Routes>
+            <Route path="/" element={<Navigate to="/venda" replace />} />
+            <Route path="/clientes" element={<Layout><Clientes /></Layout>} />
+            <Route path="/produtos" element={<Layout><Produtos /></Layout>} />
+            <Route path="/venda" element={<Layout><Venda /></Layout>} />
+            <Route path="/historico" element={<Layout><Historico /></Layout>} />
+            <Route path="/impressao/:pedidoId" element={<Impressao />} />
+          </Routes>
+        </SidebarProvider>
       </BrowserRouter>
     </div>
   );
