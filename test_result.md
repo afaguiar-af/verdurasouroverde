@@ -206,9 +206,7 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus:
-    - "Validar rotas públicas do backend"
-    - "Testar acesso a /clientes, /produtos, /pedidos, /analytics sem token"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
