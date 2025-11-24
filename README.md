@@ -195,9 +195,9 @@ CORS_ORIGINS=*
 
 ## 💻 Como Usar
 
-### Login
+### Acesso ao Sistema
 1. Acesse http://localhost
-2. Faça login com as credenciais
+2. A aplicação será aberta diretamente na tela de vendas
 
 ### Cadastro de Clientes
 1. Navegue para **Clientes**
