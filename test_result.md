@@ -107,39 +107,48 @@ user_problem_statement: "Remover completamente qualquer tipo de autenticação (
 backend:
   - task: "Remover endpoint /auth/login"
     implemented: true
-    working: "NA"
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Endpoint /auth/login removido completamente. Todas as rotas já estão públicas."
+      - working: true
+        agent: "testing"
+        comment: "✅ CONFIRMADO: Endpoint /auth/login retorna 404 (removido com sucesso). Testado via curl e backend_test.py."
 
   - task: "Remover dependências JWT do backend"
     implemented: true
-    working: "NA"
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Imports JWT, verify_token e Depends removidos. Backend 100% limpo."
+      - working: true
+        agent: "testing"
+        comment: "✅ CONFIRMADO: Nenhuma dependência JWT encontrada no código. Backend completamente limpo de autenticação."
 
   - task: "Tornar todas rotas públicas"
     implemented: true
-    working: "NA"
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Todas as rotas (/clientes, /produtos, /pedidos, /analytics) estão públicas e acessíveis sem token."
+      - working: true
+        agent: "testing"
+        comment: "✅ CONFIRMADO: Todas as 18 rotas testadas funcionam perfeitamente sem autenticação. CLIENTES (4 rotas), PRODUTOS (4 rotas), PEDIDOS (3 rotas), ANALYTICS (4 rotas) + 3 rotas de DELETE. Taxa de sucesso: 100%. Testado com e sem header Authorization - ambos funcionam."
 
 frontend:
   - task: "Deletar componentes de autenticação"
