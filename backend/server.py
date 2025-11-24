@@ -92,7 +92,7 @@ class PedidoCreate(BaseModel):
 
 # Routes - Clientes
 @api_router.post("/clientes", response_model=Cliente)
-async def create_cliente(cliente: ClienteCreate, user: dict = Depends(verify_token)):
+async def create_cliente(cliente: ClienteCreate):
     cliente_dict = cliente.model_dump()
     cliente_dict['data_cadastro'] = datetime.now(timezone.utc).isoformat()
     cliente_dict['id'] = str(ObjectId())
@@ -100,7 +100,7 @@ async def create_cliente(cliente: ClienteCreate, user: dict = Depends(verify_tok
     return Cliente(**cliente_dict)
 
 @api_router.get("/clientes", response_model=List[Cliente])
-async def get_clientes(search: Optional[str] = None, user: dict = Depends(verify_token)):
+async def get_clientes(search: Optional[str] = None):
     query = {}
     if search:
         query = {
@@ -114,14 +114,14 @@ async def get_clientes(search: Optional[str] = None, user: dict = Depends(verify
     return clientes
 
 @api_router.get("/clientes/{cliente_id}", response_model=Cliente)
-async def get_cliente(cliente_id: str, user: dict = Depends(verify_token)):
+async def get_cliente(cliente_id: str):
     cliente = await db.clientes.find_one({"id": cliente_id}, {"_id": 0})
     if not cliente:
         raise HTTPException(status_code=404, detail="Cliente não encontrado")
     return cliente
 
 @api_router.put("/clientes/{cliente_id}", response_model=Cliente)
-async def update_cliente(cliente_id: str, cliente: ClienteCreate, user: dict = Depends(verify_token)):
+async def update_cliente(cliente_id: str, cliente: ClienteCreate):
     cliente_dict = cliente.model_dump()
     result = await db.clientes.update_one({"id": cliente_id}, {"$set": cliente_dict})
     if result.matched_count == 0:
@@ -130,14 +130,14 @@ async def update_cliente(cliente_id: str, cliente: ClienteCreate, user: dict = D
     return updated_cliente
 
 @api_router.delete("/clientes/{cliente_id}")
-async def delete_cliente(cliente_id: str, user: dict = Depends(verify_token)):
+async def delete_cliente(cliente_id: str):
     result = await db.clientes.delete_one({"id": cliente_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Cliente não encontrado")
     return {"message": "Cliente excluído com sucesso"}
 
 @api_router.post("/clientes/import-csv")
-async def import_clientes_csv(file: UploadFile = File(...), user: dict = Depends(verify_token)):
+async def import_clientes_csv(file: UploadFile = File(...)):
     if not file.filename.endswith('.csv'):
         raise HTTPException(status_code=400, detail="Arquivo deve ser CSV")
     
@@ -197,7 +197,7 @@ async def import_clientes_csv(file: UploadFile = File(...), user: dict = Depends
 
 # Routes - Produtos (Protegidas)
 @api_router.post("/produtos", response_model=Produto)
-async def create_produto(produto: ProdutoCreate, user: dict = Depends(verify_token)):
+async def create_produto(produto: ProdutoCreate):
     last_produto = await db.produtos.find_one({}, {"_id": 0, "cp": 1}, sort=[("cp", -1)])
     next_cp = (last_produto["cp"] + 1) if last_produto and "cp" in last_produto else 1
     
@@ -208,7 +208,7 @@ async def create_produto(produto: ProdutoCreate, user: dict = Depends(verify_tok
     return Produto(**produto_dict)
 
 @api_router.get("/produtos", response_model=List[Produto])
-async def get_produtos(search: Optional[str] = None, tipo: Optional[str] = None, user: dict = Depends(verify_token)):
+async def get_produtos(search: Optional[str] = None, tipo: Optional[str] = None):
     query = {}
     if search:
         query["nome"] = {"$regex": search, "$options": "i"}
@@ -218,21 +218,21 @@ async def get_produtos(search: Optional[str] = None, tipo: Optional[str] = None,
     return produtos
 
 @api_router.get("/produtos/cp/{cp}", response_model=Produto)
-async def get_produto_by_cp(cp: int, user: dict = Depends(verify_token)):
+async def get_produto_by_cp(cp: int):
     produto = await db.produtos.find_one({"cp": cp}, {"_id": 0})
     if not produto:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
     return produto
 
 @api_router.get("/produtos/{produto_id}", response_model=Produto)
-async def get_produto(produto_id: str, user: dict = Depends(verify_token)):
+async def get_produto(produto_id: str):
     produto = await db.produtos.find_one({"id": produto_id}, {"_id": 0})
     if not produto:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
     return produto
 
 @api_router.put("/produtos/{produto_id}", response_model=Produto)
-async def update_produto(produto_id: str, produto: ProdutoCreate, user: dict = Depends(verify_token)):
+async def update_produto(produto_id: str, produto: ProdutoCreate):
     produto_dict = produto.model_dump()
     result = await db.produtos.update_one({"id": produto_id}, {"$set": produto_dict})
     if result.matched_count == 0:
@@ -241,7 +241,7 @@ async def update_produto(produto_id: str, produto: ProdutoCreate, user: dict = D
     return updated_produto
 
 @api_router.delete("/produtos/{produto_id}")
-async def delete_produto(produto_id: str, user: dict = Depends(verify_token)):
+async def delete_produto(produto_id: str):
     result = await db.produtos.delete_one({"id": produto_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
@@ -249,7 +249,7 @@ async def delete_produto(produto_id: str, user: dict = Depends(verify_token)):
 
 # Routes - Pedidos (Protegidas)
 @api_router.post("/pedidos", response_model=Pedido)
-async def create_pedido(pedido: PedidoCreate, user: dict = Depends(verify_token)):
+async def create_pedido(pedido: PedidoCreate):
     pedido_dict = pedido.model_dump()
     pedido_dict['data_pedido'] = datetime.now(timezone.utc).isoformat()
     pedido_dict['id'] = str(ObjectId())
@@ -297,14 +297,14 @@ async def get_pedidos(
     }
 
 @api_router.get("/pedidos/{pedido_id}", response_model=Pedido)
-async def get_pedido(pedido_id: str, user: dict = Depends(verify_token)):
+async def get_pedido(pedido_id: str):
     pedido = await db.pedidos.find_one({"id": pedido_id}, {"_id": 0})
     if not pedido:
         raise HTTPException(status_code=404, detail="Pedido não encontrado")
     return pedido
 
 @api_router.delete("/pedidos/{pedido_id}")
-async def delete_pedido(pedido_id: str, user: dict = Depends(verify_token)):
+async def delete_pedido(pedido_id: str):
     # Verificar se pedido existe
     pedido = await db.pedidos.find_one({"id": pedido_id})
     if not pedido:
@@ -319,7 +319,7 @@ async def delete_pedido(pedido_id: str, user: dict = Depends(verify_token)):
     return {"message": "Pedido excluído com sucesso"}
 
 @api_router.post("/pedidos/import-csv")
-async def import_csv(file: UploadFile = File(...), user: dict = Depends(verify_token)):
+async def import_csv(file: UploadFile = File(...)):
     if not file.filename.endswith('.csv'):
         raise HTTPException(status_code=400, detail="Arquivo deve ser CSV")
     
